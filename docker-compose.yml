@@ -1,0 +1,52 @@
+version: '3.4'
+
+services:
+
+  db:
+    image: postgres
+    ports:
+      - 5432:5432
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      retries: 5
+      start_period: 30s
+      timeout: 10s
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
+
+  pgAdmin:
+    image: dpage/pgadmin4
+    ports:
+      - 8090:80
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ilkem@baittechnology.co
+      PGADMIN_DEFAULT_PASSWORD: Sazan2499
+
+  aiphishing.api:
+    image: aiphishing-api
+    ports:
+      - 5213:8080
+    build:
+      context: .
+      dockerfile: AIPhishing.Web/Dockerfile
+    depends_on: 
+      db:
+        condition: service_healthy
+    environment:
+      ASPNETCORE_ENVIRONMENT: "Production"
+      ApiKey: "u_Slt3n1K-4L2TmF5a6n7Q"
+      ApiBaseUrl: "https://8370-81-213-251-145.ngrok-free.app"
+      UseMockServices: false
+      AdminConfiguration__UserName: "ilkem@baittechnology.co"
+      AdminConfiguration__Password: "Sazan2499"
+      EmailConfiguration__From: "ilkem@baittechnology.co"
+      EmailConfiguration__Username: "ilkem@baittechnology.co"
+      EmailConfiguration__Password: "Sazan2499"
+      EmailConfiguration__Host: "baittechnology.co"
+      EmailConfiguration__Port: 587
+      PhishingAiConfiguration__ApiBaseUrl: "http://localhost:8000"
+      PhishingAiConfiguration__ApiKey: "u_Slt3n1K-4L2TmF5a6n7Q"
+      ConnectionStrings__DbConnection: "UserID=postgres;Password=postgres;Host=db;Port=5432;Database=postgres;Pooling=true;MinPoolSize=0;MaxPoolSize=100;ConnectionLifetime=0;"
