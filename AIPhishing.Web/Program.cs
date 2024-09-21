@@ -64,7 +64,7 @@ try
 
     builder.Services.ConfigureBusinessServices(builder.Configuration);
 
-    builder.Services.AddHostedService<EmailService>();
+    // builder.Services.AddHostedService<EmailService>();
 
     builder.Services.AddEndpointsApiExplorer();
     builder.Services.AddSwaggerGen(options =>
