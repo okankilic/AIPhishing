@@ -28,8 +28,4 @@
       <ProjectReference Include="..\AIPhishing.Common\AIPhishing.Common.csproj" />
     </ItemGroup>
 
-    <ItemGroup>
-      <Folder Include="Templates\" />
-    </ItemGroup>
-
 </Project>

@@ -1,13 +1,12 @@
 using System.Text.Json.Serialization;
+using AIPhishing.Business.Configurations;
 using AIPhishing.Business.Extensions;
+using AIPhishing.Common.Helpers;
 using AIPhishing.Database;
-using AIPhishing.Web.BackgroundServices;
+using AIPhishing.Database.Entities;
 using AIPhishing.Web.Handlers;
-using AIPhishing.Web.Requirements;
-using AIPhishing.Web.Validations;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Microsoft.OpenApi.Models;
 using Serilog;
 
@@ -41,26 +40,21 @@ try
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
     builder.Services.AddHttpContextAccessor();
     builder.Services.AddHttpClient();
+
     builder.Services
-        .AddAuthentication(options =>
-        {
-            options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-        })
-        .AddJwtBearer();
+        .AddAuthentication(JwtAuthHandler.AuthenticationScheme)
+        .AddScheme<JwtAuthHandlerSchemeOptions, JwtAuthHandler>(JwtAuthHandler.AuthenticationScheme, null);
 
     builder.Services.AddAuthorization(options =>
     {
         options.AddPolicy("ApiKeyPolicy", policy =>
         {
+            policy.RequireAuthenticatedUser();
             policy.AddAuthenticationSchemes([
-                JwtBearerDefaults.AuthenticationScheme
+                JwtAuthHandler.AuthenticationScheme
             ]);
-            policy.Requirements.Add(new ApiKeyRequirement());
         });
     });
-
-    builder.Services.AddScoped<IApiKeyValidation, ApiKeyValidation>();
-    builder.Services.AddScoped<IAuthorizationHandler, ApiKeyHandler>();
 
     builder.Services.ConfigureBusinessServices(builder.Configuration);
 
@@ -73,9 +67,9 @@ try
         {
             In = ParameterLocation.Header,
             Description = "ApiKey must appear in header",
-            Name = ApiKeyValidation.ApiKeyHeaderName,
+            Name = JwtAuthHandler.ApiKeyHeaderName,
             Type = SecuritySchemeType.ApiKey,
-            Scheme = "ApiKeyScheme"
+            Scheme = JwtAuthHandler.AuthenticationScheme
         });
 
         options.AddSecurityRequirement(new OpenApiSecurityRequirement
@@ -95,10 +89,7 @@ try
     });
 
     builder.Services.AddControllers()
-        .AddJsonOptions(options =>
-        {
-            options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
-        });
+        .AddJsonOptions(options => { options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()); });
     builder.Services.AddHealthChecks();
     builder.Services.AddHttpLogging(o => { });
 
@@ -116,7 +107,7 @@ try
     }
 
     app.UseHttpsRedirection();
-    app.UseExceptionHandler(o => {});
+    app.UseExceptionHandler(o => { });
     // app.UseAuthentication();
     // app.UseAuthorization();
 
@@ -129,12 +120,45 @@ try
 
     app.MapControllers();
     app.MapHealthChecks("/healthz");
-    
+
     using (var scope = app.Services.CreateScope())
     {
         var db = scope.ServiceProvider.GetRequiredService<PhishingDbContext>();
-        
-        db.Database.Migrate();
+
+        if (db.Database.IsRelational() && app.Environment.IsDevelopment())
+            db.Database.Migrate();
+
+        var adminConfiguration = scope.ServiceProvider.GetRequiredService<IOptions<AdminConfiguration>>();
+
+        var godUser = db.Users.SingleOrDefault(q => q.ClientId == null);
+
+        if (godUser == null)
+        {
+            godUser = new User
+            {
+                Id = adminConfiguration.Value.Id,
+                Email = adminConfiguration.Value.UserName,
+                Password = PasswordHelper.Hash(adminConfiguration.Value.Password),
+                CreatedAt = DateTime.UtcNow
+            };
+
+            db.Users.Add(godUser);
+
+            db.SaveChanges();
+        }
+        else
+        {
+            if (godUser.Email != adminConfiguration.Value.UserName
+                || !PasswordHelper.Verify(adminConfiguration.Value.Password, godUser.Password))
+            {
+                godUser.Email = adminConfiguration.Value.UserName;
+                godUser.Password = PasswordHelper.Hash(adminConfiguration.Value.Password);
+
+                db.Users.Update(godUser);
+
+                db.SaveChanges();
+            }
+        }
     }
 
     app.Run();

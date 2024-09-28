@@ -1,5 +1,6 @@
 ﻿using System.Globalization;
 using AIPhishing.Business.Attacks.Models;
+using AIPhishing.Business.Contexts;
 using AIPhishing.Business.Extensions;
 using AIPhishing.Business.Integrations;
 using AIPhishing.Business.Integrations.Models;
@@ -43,7 +44,7 @@ public class AttackBusiness : IAttackBusiness
         _replyMinDuration = _configuration.GetValue<int>("ReplyMaxDuration", 5);
     }
 
-    public async Task<Guid> CreateAsync(AttackCreateRequest request)
+    public async Task<Guid> CreateAsync(AttackCreateRequest request, UserContext currentUser)
     {
         if (string.IsNullOrEmpty(request.Language?.Trim()))
             throw BusinessException.Required(nameof(request.Language));
@@ -190,7 +191,7 @@ public class AttackBusiness : IAttackBusiness
         await _dbContext.SaveChangesAsync();
     }
 
-    public async Task<AttackViewModel> GetAsync(Guid id)
+    public async Task<AttackViewModel> GetAsync(Guid id, UserContext? currentUser = null)
     {
         var attack = await _dbContext.Attacks
                          .AsNoTracking()
@@ -334,9 +335,20 @@ public class AttackBusiness : IAttackBusiness
         }
     }
 
-    public async Task<AttackListResponse> ListAsync(AttackListRequest request)
+    public async Task<AttackListResponse> ListAsync(AttackListRequest request, UserContext currentUser)
     {
+        if (request == null)
+            throw BusinessException.Required(nameof(request));
+        
         var count = await _dbContext.Attacks.CountAsync();
+
+        var pageSize = request.PageSize > 0
+            ? request.PageSize
+            : 10;
+
+        var page = request.CurrentPage > 0
+            ? request.CurrentPage
+            : 1;
         
         var attacks = await _dbContext.Attacks
             .Select(q => new
@@ -347,8 +359,8 @@ public class AttackBusiness : IAttackBusiness
                 q.CreatedAt
             })
             .OrderByDescending(q => q.CreatedAt)
-            .Skip(request.PageSize * (request.CurrentPage - 1))
-            .Take(request.PageSize)
+            .Skip(pageSize * (page - 1))
+            .Take(pageSize)
             .ToArrayAsync();
 
         var targets = await _dbContext.AttackTargets

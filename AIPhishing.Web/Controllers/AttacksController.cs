@@ -11,7 +11,9 @@ public class AttacksController : BaseApiController
     private readonly IAttackBusiness _attackBusiness;
     
     public AttacksController(
+        IHttpContextAccessor httpContextAccessor,
         IAttackBusiness attackBusiness)
+        : base(httpContextAccessor)
     {
         _attackBusiness = attackBusiness ?? throw new ArgumentNullException(nameof(attackBusiness));
     }
@@ -20,7 +22,7 @@ public class AttacksController : BaseApiController
     [ProducesResponseType(typeof(ApiResult<AttackListResponse>), StatusCodes.Status200OK)]
     public async Task<IActionResult> List([FromQuery] AttackListRequest request)
     {
-        var response = await _attackBusiness.ListAsync(request);
+        var response = await _attackBusiness.ListAsync(request, CurrentUser);
 
         return OkApiResult(response);
     }
@@ -29,7 +31,7 @@ public class AttacksController : BaseApiController
     [ProducesResponseType(typeof(ApiResult<AttackViewModel>), StatusCodes.Status200OK)]
     public async Task<IActionResult> Get([FromRoute] Guid id)
     {
-        var response = await _attackBusiness.GetAsync(id);
+        var response = await _attackBusiness.GetAsync(id, CurrentUser);
 
         return OkApiResult(response);
     }
@@ -38,7 +40,7 @@ public class AttacksController : BaseApiController
     [ProducesResponseType(typeof(Guid), StatusCodes.Status200OK)]
     public async Task<IActionResult> Create([FromForm] AttackCreateRequest request)
     {
-        var response = await _attackBusiness.CreateAsync(request);
+        var response = await _attackBusiness.CreateAsync(request, CurrentUser);
         
         return OkApiResult(response);
     }

@@ -22,4 +22,9 @@ public class BusinessException(string message)
     {
         return new BusinessException($"{propertyName} not found. {message}");
     }
+    
+    public static BusinessException InUse(string propertyName, string value)
+    {
+        return new BusinessException($"{propertyName}: {value} is already in use.");
+    }
 }

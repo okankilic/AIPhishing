@@ -10,7 +10,10 @@ public class AuthController : BaseApiController
 {
     private readonly IAuthBusiness _authBusiness;
 
-    public AuthController(IAuthBusiness authBusiness)
+    public AuthController(
+        IHttpContextAccessor httpContextAccessor,
+        IAuthBusiness authBusiness)
+        : base(httpContextAccessor)
     {
         _authBusiness = authBusiness ?? throw new ArgumentNullException(nameof(authBusiness));
     }

@@ -4,10 +4,17 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace AIPhishing.Web.Controllers;
 
-public class EnumsController(IEnumBusiness enumBusiness)
-    : BaseApiController
+public class EnumsController : BaseApiController
 {
-    private readonly IEnumBusiness _enumBusiness = enumBusiness ?? throw new ArgumentNullException(nameof(enumBusiness));
+    private readonly IEnumBusiness _enumBusiness;
+    
+    public EnumsController(
+        IHttpContextAccessor httpContextAccessor,
+        IEnumBusiness enumBusiness)
+        : base(httpContextAccessor)
+    {
+        _enumBusiness = enumBusiness ?? throw new ArgumentNullException(nameof(enumBusiness));
+    }
 
     [HttpGet("attack-types")]
     public IActionResult GetAttackTypes()
