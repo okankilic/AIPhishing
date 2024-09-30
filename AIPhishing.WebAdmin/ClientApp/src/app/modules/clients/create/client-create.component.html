@@ -1,0 +1,49 @@
+<form [formGroup]="form"
+      (ngSubmit)="onSubmit()"
+      style="display: flex; flex-direction: column; align-items: stretch; justify-content: stretch;"
+>
+  <mat-form-field>
+    <mat-label>Client Name</mat-label>
+    <input matInput type="text" formControlName="clientName">
+    <mat-error *ngIf="form.hasError('required', 'clientName')">
+      Please enter a client name
+    </mat-error>
+    <mat-error *ngIf="form.hasError('maxlength', 'clientName')">
+      Client name cannot be longer than 255 chars
+    </mat-error>
+  </mat-form-field>
+  <div style="display: flex; flex-direction: row; align-items: baseline; justify-content: space-between; column-gap: 10px;">
+    <mat-form-field style="flex-grow: 1">
+      <mat-label>CSV file</mat-label>
+      <input type="text" readonly matInput formControlName="csvFileName">
+      <input type="file" hidden (change)="onCsvFileChange(csvFile.files)" #csvFile accept=".csv">
+      <mat-error *ngIf="form.hasError('required', 'csvFile')">
+        Please select a CSV file
+      </mat-error>
+    </mat-form-field>
+    <button mat-raised-button color="primary" matPrefix (click)="csvFile.click()">
+      Select
+    </button>
+  </div>
+  <fieldset>User</fieldset>
+  <mat-form-field [formGroup]="userForm">
+    <mat-label>Email</mat-label>
+    <input matInput type="email" formControlName="email">
+    <mat-error *ngIf="userForm.hasError('required', 'email')">
+      Please enter user email address
+    </mat-error>
+    <mat-error *ngIf="userForm.hasError('email', 'email')">
+      Please enter a valid email address
+    </mat-error>
+  </mat-form-field>
+  <mat-form-field [formGroup]="userForm">
+    <mat-label>Password</mat-label>
+    <input matInput type="email" formControlName="password">
+    <mat-error *ngIf="userForm.hasError('required', 'password')">
+      Please enter user password
+    </mat-error>
+  </mat-form-field>
+  <button mat-raised-button color="primary" type="submit">
+    Save
+  </button>
+</form>

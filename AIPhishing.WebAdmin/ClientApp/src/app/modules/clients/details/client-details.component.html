@@ -1,0 +1,103 @@
+<div>
+  <h2>Client</h2>
+  <form [formGroup]="clientForm"
+        (ngSubmit)="onClientFormSubmit()"
+        style="display: flex; flex-direction: row; align-items: center; justify-content: space-between; column-gap: 10px;"
+  >
+    <mat-form-field style="flex-grow: 1">
+      <mat-label>Client Name</mat-label>
+      <input matInput type="text" formControlName="clientName">
+      <mat-error *ngIf="clientForm.hasError('required', 'clientName')">
+        Please enter a client name
+      </mat-error>
+    </mat-form-field>
+    <button mat-raised-button color="primary" type="submit">
+      Save
+    </button>
+  </form>
+</div>
+
+<div>
+  <h2>User</h2>
+  <form [formGroup]="userForm"
+        (ngSubmit)="onUserFormSubmit()"
+        style="display: flex; flex-direction: row; align-items: center; justify-content: space-between; column-gap: 10px;">
+    <mat-form-field style="flex-grow: 1">
+      <mat-label>Email</mat-label>
+      <input matInput type="email" formControlName="email">
+      <mat-error *ngIf="userForm.hasError('required', 'email')">
+        Please enter user email address
+      </mat-error>
+      <mat-error *ngIf="userForm.hasError('email', 'email')">
+        Please enter a valid email address
+      </mat-error>
+    </mat-form-field>
+    <mat-form-field style="flex-grow: 1">
+      <mat-label>Password</mat-label>
+      <input matInput type="email" formControlName="password">
+      <mat-error *ngIf="userForm.hasError('required', 'password')">
+        Please enter user password
+      </mat-error>
+    </mat-form-field>
+    <button mat-raised-button color="primary" type="submit">
+      Save
+    </button>
+  </form>
+</div>
+
+<div>
+  <h2>Targets</h2>
+  <form [formGroup]="csvForm"
+        (ngSubmit)="onCsvFormSubmit()"
+        style="display: flex; flex-direction: row; align-items: center; justify-content: space-between; column-gap: 10px;"
+  >
+    <mat-form-field style="flex-grow: 1">
+      <mat-label>CSV file</mat-label>
+      <input type="text" readonly matInput formControlName="csvFileName">
+      <input type="file" hidden (change)="onCsvFileChange(csvFile.files)" #csvFile accept=".csv">
+      <mat-error *ngIf="clientForm.hasError('required', 'csvFile')">
+        Please select a CSV file
+      </mat-error>
+    </mat-form-field>
+    <button mat-raised-button color="primary" matPrefix (click)="csvFile.click()">
+      Select
+    </button>
+    <button mat-raised-button color="primary" type="submit">
+      Import
+    </button>
+  </form>
+  <table mat-table [dataSource]="dataSource">
+    <ng-container matColumnDef="email">
+      <th mat-header-cell *matHeaderCellDef> Email </th>
+      <td mat-cell *matCellDef="let element"> {{element.email}} </td>
+    </ng-container>
+
+    <ng-container matColumnDef="fullName">
+      <th mat-header-cell *matHeaderCellDef> Full Name </th>
+      <td mat-cell *matCellDef="let element">
+        {{element.fullName}}
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="actions">
+      <th mat-header-cell *matHeaderCellDef></th>
+      <td mat-cell *matCellDef="let element">
+        <button mat-raised-button color="warn" (click)="onTargetDeleteClick(element)">
+          Delete
+        </button>
+      </td>
+    </ng-container>
+
+    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+    <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+    <tr class="mat-row" *matNoDataRow>
+      <td class="mat-cell" [attr.colspan]="displayedColumns.length" style="color:rgba(255, 255, 255, 0.87); text-align: center; padding: 16px;">
+        No targets defined yet.
+      </td>
+    </tr>
+  </table>
+  <mat-paginator [pageSizeOptions]="[5, 10, 20]"
+                 [pageSize]="20"
+                 aria-label="Select page of periodic elements">
+  </mat-paginator>
+</div>

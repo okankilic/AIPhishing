@@ -1,0 +1,49 @@
+<div
+  style="display: flex; flex-direction: row; align-items: center; justify-content: center; padding: 20px;">
+  <form
+    [formGroup]="form"
+    (ngSubmit)="onSubmit()"
+    style="display: flex; flex-direction: column; align-items: stretch; width: 320px;">
+    <mat-form-field>
+      <mat-label>
+        Email
+      </mat-label>
+      <input
+        matInput
+        type="text"
+        formControlName="userName"
+      >
+      <mat-error *ngIf="form.hasError('required', 'userName')">
+        Please enter an email address
+      </mat-error>
+      <mat-error *ngIf="form.hasError('email', 'userName')">
+        Please enter a valid email address
+      </mat-error>
+      <mat-error *ngIf="form.hasError('maxlength', 'userName')">
+        Email cannot be longer than 255 chars
+      </mat-error>
+    </mat-form-field>
+    <mat-form-field>
+      <mat-label>
+        Password
+      </mat-label>
+      <input
+        matInput
+        type="password"
+        formControlName="password"
+      >
+      <mat-error *ngIf="form.hasError('required', 'password')">
+        Please enter a password
+      </mat-error>
+      <mat-error *ngIf="form.hasError('maxlength', 'password')">
+        Password cannot be longer than 100 chars
+      </mat-error>
+    </mat-form-field>
+    <button
+      mat-raised-button
+      type="submit"
+    color="primary">
+      LOGIN
+    </button>
+  </form>
+</div>
