@@ -21,16 +21,16 @@ public static class ServiceCollectionExtensions
         services.AddDbContext<PhishingDbContext>(dbContextOptions =>
         {
             dbContextOptions
-                .UseInMemoryDatabase("ai_phishing")
-                .ConfigureWarnings(w =>
-                {
-                    w.Ignore(InMemoryEventId.TransactionIgnoredWarning);
-                });
-                // .UseNpgsql(configuration.GetConnectionString("DbConnection"), builder =>
+                // .UseInMemoryDatabase("ai_phishing")
+                // .ConfigureWarnings(w =>
                 // {
-                //     builder.MigrationsHistoryTable(PhishingDbContext.MIGRATIONS_HISTORY_TABLE_NAME, PhishingDbContext.SCHEMA_NAME);
-                // })
-                // .UseSnakeCaseNamingConvention();
+                //     w.Ignore(InMemoryEventId.TransactionIgnoredWarning);
+                // });
+                .UseNpgsql(configuration.GetConnectionString("DbConnection"), builder =>
+                {
+                    builder.MigrationsHistoryTable(PhishingDbContext.MIGRATIONS_HISTORY_TABLE_NAME, PhishingDbContext.SCHEMA_NAME);
+                })
+                .UseSnakeCaseNamingConvention();
         });
         
         services.Configure<EmailConfiguration>(configuration.GetSection(nameof(EmailConfiguration)));
