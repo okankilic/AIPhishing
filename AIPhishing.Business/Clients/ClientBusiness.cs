@@ -275,7 +275,7 @@ public class ClientBusiness : IClientBusiness
 
     public async Task ImportTargetsAsync(Guid clientId, IFormFile file, UserContext currentUser)
     {
-        if (!currentUser.IsGodUser && clientId != currentUser.ClientId)
+        if (currentUser is not { IsGodUser: true })
             throw new BusinessException($"You cannot take this action.");
         
         if (file == null || Path.GetExtension(file.FileName) != ".csv")
