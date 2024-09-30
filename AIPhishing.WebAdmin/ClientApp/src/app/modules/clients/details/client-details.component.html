@@ -55,7 +55,7 @@
       <mat-label>CSV file</mat-label>
       <input type="text" readonly matInput formControlName="csvFileName">
       <input type="file" hidden (change)="onCsvFileChange(csvFile.files)" #csvFile accept=".csv">
-      <mat-error *ngIf="clientForm.hasError('required', 'csvFile')">
+      <mat-error *ngIf="csvForm.hasError('required', 'csvFile')">
         Please select a CSV file
       </mat-error>
     </mat-form-field>

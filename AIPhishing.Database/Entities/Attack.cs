@@ -12,8 +12,10 @@ public class Attack
     public DateTime? UpdatedAt { get; set; }
     public string? ErrorMessage { get; set; } = null;
     public DateTime? StartTime { get; set; }
+    public Guid? ClientId { get; set; }
     
     //  Navigations
     public virtual ICollection<AttackTarget> Targets { get; set; }
     public virtual ICollection<AttackEmail> Emails { get; set; }
+    public virtual Client Client { get; set; }
 }

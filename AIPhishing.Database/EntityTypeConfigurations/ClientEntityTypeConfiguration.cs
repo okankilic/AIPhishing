@@ -30,5 +30,9 @@ public class ClientEntityTypeConfiguration : IEntityTypeConfiguration<Client>
         builder.HasMany(q => q.Targets)
             .WithOne(q => q.Client)
             .HasForeignKey(q => q.ClientId);
+        
+        builder.HasMany(q => q.Attacks)
+            .WithOne(q => q.Client)
+            .HasForeignKey(q => q.ClientId);
     }
 }

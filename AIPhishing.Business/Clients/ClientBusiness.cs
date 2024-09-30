@@ -24,7 +24,7 @@ public class ClientBusiness : IClientBusiness
     public async Task CreateAsync(ClientCreateRequest request, UserContext currentUser)
     {
         if (currentUser is not { IsGodUser: true })
-            throw new UnauthorizedAccessException($"You cannot take this action.");
+            throw new BusinessException($"You cannot take this action.");
         
         if (request == null)
             throw BusinessException.Required(nameof(request));
@@ -125,13 +125,12 @@ public class ClientBusiness : IClientBusiness
 
     public async Task<ClientListResponse> ListAsync(ClientListRequest request, UserContext currentUser)
     {
-        if (currentUser is not { IsGodUser: true })
-            throw new UnauthorizedAccessException($"You cannot take this action.");
-        
         if (request == null)
             throw BusinessException.Required(nameof(request));
         
-        var count = await _dbContext.Clients.CountAsync();
+        var count = await _dbContext.Clients
+            .Where(q => currentUser.IsGodUser || q.Id == currentUser.ClientId)
+            .CountAsync();
 
         var pageSize = request.PageSize > 0
             ? request.PageSize
@@ -142,6 +141,7 @@ public class ClientBusiness : IClientBusiness
             : 1;
         
         var clients = await _dbContext.Clients
+            .Where(q => currentUser.IsGodUser || q.Id == currentUser.ClientId)
             .Select(q => new
             {
                 q.Id,
@@ -162,9 +162,6 @@ public class ClientBusiness : IClientBusiness
 
     public async Task<ClientTargetListResponse> ListTargetsAsync(Guid clientId, ClientTargetListRequest request, UserContext currentUser)
     {
-        if (currentUser is not { IsGodUser: true })
-            throw new UnauthorizedAccessException($"You cannot take this action.");
-        
         if (request == null)
             throw BusinessException.Required(nameof(request));
         
@@ -201,9 +198,6 @@ public class ClientBusiness : IClientBusiness
 
     public async Task<ClientViewModel> GetAsync(Guid clientId, UserContext currentUser)
     {
-        if (currentUser is not { IsGodUser: true })
-            throw new UnauthorizedAccessException($"You cannot take this action.");
-
         var client = await _dbContext.Clients
                          .AsNoTracking()
                          .SingleOrDefaultAsync(q => q.Id == clientId)
@@ -223,7 +217,7 @@ public class ClientBusiness : IClientBusiness
     public async Task UpdateAsync(Guid clientId, ClientUpdateRequest request, UserContext currentUser)
     {
         if (currentUser is not { IsGodUser: true })
-            throw new UnauthorizedAccessException($"You cannot take this action.");
+            throw new BusinessException($"You cannot take this action.");
         
         if (request == null)
             throw BusinessException.Required(nameof(request));
@@ -248,7 +242,7 @@ public class ClientBusiness : IClientBusiness
     public async Task UpdateUserAsync(Guid clientId, ClientUserEditModel request, UserContext currentUser)
     {
         if (currentUser is not { IsGodUser: true })
-            throw new UnauthorizedAccessException($"You cannot take this action.");
+            throw new BusinessException($"You cannot take this action.");
         
         if (request == null)
             throw BusinessException.Required(nameof(request));
@@ -281,8 +275,8 @@ public class ClientBusiness : IClientBusiness
 
     public async Task ImportTargetsAsync(Guid clientId, IFormFile file, UserContext currentUser)
     {
-        if (currentUser is not { IsGodUser: true })
-            throw new UnauthorizedAccessException($"You cannot take this action.");
+        if (!currentUser.IsGodUser && clientId != currentUser.ClientId)
+            throw new BusinessException($"You cannot take this action.");
         
         if (file == null || Path.GetExtension(file.FileName) != ".csv")
             throw BusinessException.Required(nameof(file));
@@ -359,8 +353,8 @@ public class ClientBusiness : IClientBusiness
 
     public async Task DeleteTargetAsync(Guid clientId, Guid targetId, UserContext currentUser)
     {
-        if (currentUser is not { IsGodUser: true })
-            throw new UnauthorizedAccessException($"You cannot take this action.");
+        if (!currentUser.IsGodUser && clientId != currentUser.ClientId)
+            throw new BusinessException($"You cannot take this action.");
 
         var target = await _dbContext.ClientTargets
                          .SingleOrDefaultAsync(q => q.ClientId == clientId && q.Id == targetId)

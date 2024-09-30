@@ -95,6 +95,7 @@ public class AttackBusiness : IAttackBusiness
             var attack = new Attack
             {
                 Id = Guid.NewGuid(),
+                ClientId = currentUser.ClientId,
                 Language = request.Language,
                 State = AttackStateEnum.Created,
                 StartTime = request.StartTime,
@@ -115,7 +116,7 @@ public class AttackBusiness : IAttackBusiness
                         select new AttackTargetCreateModel(request.Types[index], user.Email, user.FullName))
                     .ToArray();
                 
-                await CreateTargetsAsync(attack.Id, targetModels);
+                await CreateTargetsAsync(currentUser.ClientId, attack.Id, targetModels);
             }
             else
             {
@@ -123,7 +124,7 @@ public class AttackBusiness : IAttackBusiness
                     .Select(u => new AttackTargetCreateModel(null, u.Email, u.FullName))
                     .ToArray();
                 
-                await CreateTargetsAsync(attack.Id, targetModels);
+                await CreateTargetsAsync(currentUser.ClientId, attack.Id, targetModels);
                 
                 var appUrl = _configuration.GetValue<string>("ApiBaseUrl")!;
 
@@ -221,7 +222,7 @@ public class AttackBusiness : IAttackBusiness
         return new AttackViewModel(attack.Id, attack.Language, attack.State, attack.StartTime, targetViewModels);
     }
     
-    public async Task CreateTargetsAsync(Guid id, AttackTargetCreateModel[] models)
+    public async Task CreateTargetsAsync(Guid? clientId, Guid id, AttackTargetCreateModel[] models)
     {
         var targets = models
             .Select(u => new AttackTarget
@@ -233,7 +234,24 @@ public class AttackBusiness : IAttackBusiness
             })
             .ToArray();
 
-        await _dbContext.AttackTargets.AddRangeAsync(targets);
+        if (clientId != null)
+        {
+            var clientTargetEmails = await _dbContext.ClientTargets
+                .AsNoTracking()
+                .Where(q => q.ClientId == clientId)
+                .Select(q => q.Email)
+                .ToArrayAsync();
+
+            var filteredTargets = targets
+                .Where(q => clientTargetEmails.Contains(q.TargetEmail))
+                .ToArray();
+            
+            await _dbContext.AttackTargets.AddRangeAsync(filteredTargets);
+        }
+        else
+        {
+            await _dbContext.AttackTargets.AddRangeAsync(targets);
+        }
 
         await _dbContext.SaveChangesAsync();
     }
@@ -351,6 +369,7 @@ public class AttackBusiness : IAttackBusiness
             : 1;
         
         var attacks = await _dbContext.Attacks
+            .Where(q => q.ClientId == currentUser.ClientId)
             .Select(q => new
             {
                 q.Id,

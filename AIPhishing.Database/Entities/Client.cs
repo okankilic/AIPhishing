@@ -9,5 +9,5 @@ public class Client
     //  navigations
     public virtual ICollection<User> Users { get; set; }
     public virtual ICollection<ClientTarget> Targets { get; set; }
-    // public virtual ICollection<Attack> Attacks { get; set; }
+    public virtual ICollection<Attack> Attacks { get; set; }
 }

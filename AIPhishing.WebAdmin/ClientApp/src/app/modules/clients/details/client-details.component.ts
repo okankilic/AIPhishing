@@ -146,6 +146,10 @@ export class ClientDetailsComponent implements OnInit, AfterViewInit {
     formData.append('file', this.csvForm.value.csvFile ?? '');
     this._clientService.importTargets(this._clientId, formData)
       .subscribe(_ => {
+        this.csvForm.patchValue({
+          csvFile: null,
+          csvFileName: null
+        })
         this._snackbarService.show('success', 'Targets imported.');
         this.getTargets();
       })
