@@ -1,5 +1,3 @@
-﻿using AIPhishing.Common.Enums;
+﻿namespace AIPhishing.Business.Attacks.Models;
 
-namespace AIPhishing.Business.Attacks.Models;
-
-public record AttackTargetCreateModel(AttackTypeEnum? AttackType, string Email, string FullName);
+public record AttackTargetCreateModel(string? AttackType, string Email, string FullName);

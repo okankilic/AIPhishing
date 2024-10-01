@@ -92,14 +92,14 @@ public class AttackManager
                     
                     foreach (var attackTarget in attack.Targets)
                     {
-                        if (!attackTarget.AttackType.HasValue)
+                        if (string.IsNullOrEmpty(attackTarget.AttackType))
                             continue;
                  
                         var emailId = Guid.NewGuid();
                         var linkUrl = $"{appUrl}/api/webhooks/clicked/{emailId}";
 
                         var request = new PhishingAiGetEmailContentRequest(
-                            attackTarget.AttackType.Value.ToString(), 
+                            attackTarget.AttackType, 
                             attackTarget.FullName,
                             attackTarget.Email, 
                             emailId, 

@@ -16,11 +16,11 @@ public class EnumsController : BaseApiController
         _enumBusiness = enumBusiness ?? throw new ArgumentNullException(nameof(enumBusiness));
     }
 
-    [HttpGet("attack-types")]
-    public IActionResult GetAttackTypes()
-    {
-        var result = _enumBusiness.GetEnums<AttackTypeEnum>();
-
-        return OkApiResult(result);
-    }
+    // [HttpGet("attack-types")]
+    // public IActionResult GetAttackTypes()
+    // {
+    //     var result = _enumBusiness.GetEnums<AttackTypeEnum>();
+    //
+    //     return OkApiResult(result);
+    // }
 }

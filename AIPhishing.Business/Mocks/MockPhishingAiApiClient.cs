@@ -1,6 +1,5 @@
 ﻿using AIPhishing.Business.Integrations;
 using AIPhishing.Business.Integrations.Models;
-using AIPhishing.Common.Enums;
 using Microsoft.Extensions.Configuration;
 
 namespace AIPhishing.Business.Mocks;
@@ -26,9 +25,9 @@ public class MockPhishingAiApiClient : IPhishingAiApiClient
         var subject = "You gained a gift";
         var body = string.Empty;
 
-        switch (Enum.Parse<AttackTypeEnum>(request.AttackType))
+        switch (request.AttackType)
         {
-            case AttackTypeEnum.UrgentAccountRequired:
+            case "UrgentAccountRequired":
                 body = $"""
                         Dear {request.TargetFullName},
                         <br>
@@ -54,7 +53,7 @@ public class MockPhishingAiApiClient : IPhishingAiApiClient
                         """;
                 break;
             
-            case AttackTypeEnum.SecurityAlert:
+            case "SecurityAlert":
                 body = $"""
                         Dear {request.TargetFullName},
                         <br>
@@ -77,7 +76,7 @@ public class MockPhishingAiApiClient : IPhishingAiApiClient
                         """;
                 break;
             
-            case AttackTypeEnum.PaymentConfirmation:
+            case "PaymentConfirmation":
                 body = $"""
                         Dear {request.TargetFullName}, 
                         <br>
@@ -97,7 +96,7 @@ public class MockPhishingAiApiClient : IPhishingAiApiClient
                         """;
                 break;
             
-            case AttackTypeEnum.UnusualLoginAttempt:
+            case "UnusualLoginAttempt":
                 body = $"""
                         Dear {request.TargetFullName}, 
                         <br>
@@ -120,7 +119,7 @@ public class MockPhishingAiApiClient : IPhishingAiApiClient
                         """;
                 break;
             
-            case AttackTypeEnum.InvoiceAttached:
+            case "InvoiceAttached":
                 body = $"""
                         Dear {request.TargetFullName}, 
                         <br>
@@ -140,7 +139,7 @@ public class MockPhishingAiApiClient : IPhishingAiApiClient
                         """;
                 break;
             
-            case AttackTypeEnum.PasswordResetRequest:
+            case "PasswordResetRequest":
                 body = $"""
                         Dear {request.TargetFullName}, 
                         <br>
@@ -163,7 +162,7 @@ public class MockPhishingAiApiClient : IPhishingAiApiClient
                         """;
                 break;
             
-            case AttackTypeEnum.PackageDeliveryNotification:
+            case "PackageDeliveryNotification":
                 body = $"""
                         Dear {request.TargetFullName}, 
                         <br>
@@ -184,48 +183,6 @@ public class MockPhishingAiApiClient : IPhishingAiApiClient
                         <br>
                         [Your Company's Name] Shipping Team 
                         """;
-                break;
-            
-//             case AttackTypeEnum.JobOffer:
-//                 body = $"""
-//                         Dear {request.TargetFullName}, 
-//                         <br>
-//                         <br>
-//                         We are thrilled to offer you an exciting job opportunity at [Company Name]. We believe your skills and experience would be a valuable addition to our team. 
-//                         <br>
-//                         <br>
-//                         Please review the attached job offer letter for more details about the position and benefits. We look forward to hearing from you soon. 
-//                         <br>
-//                         <a href="{linkUrl}">Link</a>
-//                         <br>
-//                         <br>
-//                         Congratulations, and we hope to welcome you on board! 
-//                         <br>
-//                         <br>
-//                         Best regards,
-//                         <br>
-//                         [Your Name]
-//                         <br>
-//                         [Your Position]
-//                         <br> 
-//                         [Company Name] 
-//                         """;
-//                 break;
-            
-            case AttackTypeEnum.ImportantMessageFrom:
-                body = "";
-                break;
-            
-            case AttackTypeEnum.AccountSuspensionWarning:
-                body = "";
-                break;
-            
-            case AttackTypeEnum.MessageFromITSupport:
-                body = "";
-                break;
-            
-            case AttackTypeEnum.SubscriptionRenewalNotice:
-                body = "";
                 break;
         }
 

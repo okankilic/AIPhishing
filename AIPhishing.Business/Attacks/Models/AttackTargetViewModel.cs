@@ -1,9 +1,7 @@
-﻿using AIPhishing.Common.Enums;
-
-namespace AIPhishing.Business.Attacks.Models;
+﻿namespace AIPhishing.Business.Attacks.Models;
 
 public record AttackTargetViewModel(
-    AttackTypeEnum? AttackType,
+    string? AttackType,
     string Email,
     string FullName,
     bool Succeeded);

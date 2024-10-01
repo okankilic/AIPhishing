@@ -18,7 +18,7 @@ public class AttackTargetEntityTypeConfiguration : IEntityTypeConfiguration<Atta
             .IsRequired();
         
         builder.Property(q => q.AttackType)
-            .HasConversion<string>();
+            .HasMaxLength(200);
 
         builder.Property(q => q.TargetEmail)
             .HasMaxLength(255)

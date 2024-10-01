@@ -1,11 +1,10 @@
-﻿using AIPhishing.Common.Enums;
-using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Http;
 
 namespace AIPhishing.Business.Attacks.Models;
 
 public record AttackCreateRequest(
     string Language, 
-    AttackTypeEnum[]? Types, 
+    string[]? Types, 
     IFormFile? CsvFile,
     string? From = null,
     string? DisplayName = null,
