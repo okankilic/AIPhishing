@@ -8,7 +8,7 @@ namespace AIPhishing.WebAdmin.Controllers;
 [AllowAnonymous]
 [Route("api/[controller]")]
 [ApiController]
-public class WebhooksController(IAttackBusiness attackBusiness)
+public class WebhooksController(IAttackBusiness attackBusiness, IWebHostEnvironment environment)
     : ControllerBase
 {
     // [HttpPost("opened")]
@@ -36,7 +36,9 @@ public class WebhooksController(IAttackBusiness attackBusiness)
     {
         await attackBusiness.EmailClickedAsync(emailId);
 
-        return Content("<html><body><h1>Congratulations.. You have been hacked..</h1> <p>But don't worry, this was harmless and be careful for the next time.</p></body></html>", "text/html");
+        var image = System.IO.File.OpenRead(Path.Combine(environment.WebRootPath, "Baited.png"));
+
+        return File(image, "image/png");
     }
 
     [HttpPost("replied")]
