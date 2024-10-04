@@ -13,6 +13,7 @@ import {
 
 export interface AppState {
   apiKey: string | null,
+  tokenExpiry: string | Date | null,
   user: AuthUserResponse | null
 }
 
@@ -31,6 +32,7 @@ export class AppContextService {
 
   private _state = new BehaviorSubject<AppState>({
     apiKey: this._loginResponse?.apiKey ?? null,
+    tokenExpiry: this._loginResponse?.tokenExpiry ?? null,
     user: this._loginResponse?.user ?? null
   });
 
@@ -52,6 +54,7 @@ export class AppContextService {
     localStorage.setItem(this._storageKey, JSON.stringify(result));
     this.setState({
       apiKey: result.apiKey,
+      tokenExpiry: result.tokenExpiry,
       user: result.user
     })
     this.navigate(returnUrl ?? '/');
@@ -65,6 +68,7 @@ export class AppContextService {
     localStorage.removeItem(this._storageKey);
     this.setState({
       apiKey: null,
+      tokenExpiry: null,
       user: null
     })
     this.navigate('/login', {

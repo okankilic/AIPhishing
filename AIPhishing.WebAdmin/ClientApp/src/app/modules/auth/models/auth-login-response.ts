@@ -1,5 +1,6 @@
 export interface AuthLoginResponse {
   apiKey: string;
+  tokenExpiry: string | Date;
   user: AuthUserResponse;
 }
 

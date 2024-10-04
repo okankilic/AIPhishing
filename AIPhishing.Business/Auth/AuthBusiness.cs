@@ -61,6 +61,10 @@ public class AuthBusiness : IAuthBusiness
             _jwtConfiguration.ExpiresInMinutes,
             claims);
 
-        return new AuthLoginResponse(token, new AuthUserResponse(user.Email, user.ClientId));
+        return new AuthLoginResponse(
+            token,
+            _jwtConfiguration.ExpiresInMinutes,
+            DateTime.UtcNow.AddMinutes(_jwtConfiguration.ExpiresInMinutes), 
+            new AuthUserResponse(user.Email, user.ClientId));
     }
 }
