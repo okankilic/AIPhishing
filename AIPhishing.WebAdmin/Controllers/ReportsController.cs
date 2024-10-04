@@ -23,4 +23,12 @@ public class ReportsController : BaseApiController
 
         return OkApiResult(response);
     }
+
+    [HttpGet("items")]
+    public async Task<IActionResult> GetItems([FromQuery] ReportItemListRequest request)
+    {
+        var response = await _reportBusiness.GetItemsAsync(request, CurrentUser);
+
+        return OkApiResult(response);
+    }
 }
