@@ -7,6 +7,7 @@ public class ClientTarget
     public string Email { get; set; }
     public string FullName { get; set; }
     public DateTime CreatedAt { get; set; }
+    public string Department { get; set; }
     
     //  navigations
     public virtual Client Client { get; set; }

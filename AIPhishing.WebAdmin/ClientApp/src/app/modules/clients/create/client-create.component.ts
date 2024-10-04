@@ -1,4 +1,6 @@
-import { Component } from '@angular/core';
+import {
+  Component
+} from '@angular/core';
 import {
   FormControl,
   FormGroup,
@@ -13,6 +15,9 @@ import {
 import {
   SnackbarService
 } from "../../../core/services/snackbar.service";
+import {
+  saveAs
+} from "file-saver";
 
 @Component({
   selector: 'app-client-create',
@@ -76,6 +81,13 @@ export class ClientCreateComponent {
       .subscribe(_ => {
         this._snackbarService.show('success', `Client created.`);
         this._appContextService.navigate('/');
+      })
+  }
+
+  onDowloadSampleTargetCsv() {
+    this._clientsService.downloadSampleTargetCsvFile()
+      .subscribe(blob => {
+        saveAs(blob, 'sample-client-target.csv');
       })
   }
 }

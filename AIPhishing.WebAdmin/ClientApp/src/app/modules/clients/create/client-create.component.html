@@ -21,8 +21,11 @@
         Please select a CSV file
       </mat-error>
     </mat-form-field>
-    <button mat-raised-button color="primary" matPrefix (click)="csvFile.click()">
+    <button mat-raised-button color="primary" type="button" (click)="csvFile.click()">
       Select
+    </button>
+    <button mat-raised-button color="primary" type="button" (click)="onDowloadSampleTargetCsv()">
+      Download Sample
     </button>
   </div>
   <fieldset>User</fieldset>

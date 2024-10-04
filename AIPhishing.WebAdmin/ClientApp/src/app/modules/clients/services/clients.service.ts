@@ -28,6 +28,9 @@ import {
 import {
   ClientUserEditModel
 } from "../models/client-user-edit.model";
+import {
+  environment
+} from "../../../../environments/environment";
 
 @Injectable({
   providedIn: 'root'
@@ -76,5 +79,11 @@ export class ClientsService extends BaseApiService {
 
   public deleteTarget(clientId: string, targetId: string) {
     return this.doDelete(`${this._baseUrl}/${clientId}/targets/${targetId}`);
+  }
+
+  public downloadSampleTargetCsvFile() {
+    return this.httpClient.get(`${environment.baseUrl}/${this._baseUrl}/sample-target-csv`, {
+      responseType: 'blob'
+    });
   }
 }

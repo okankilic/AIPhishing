@@ -36,6 +36,9 @@ import {
 import {
   ClientUserEditModel
 } from "../models/client-user-edit.model";
+import {
+  saveAs
+} from "file-saver";
 
 @Component({
   selector: 'app-client-details',
@@ -75,6 +78,7 @@ export class ClientDetailsComponent implements OnInit, AfterViewInit {
 
   dataSource = new MatTableDataSource<ClientTargetListViewModel>([]);
   displayedColumns = [
+    'department',
     'email',
     'fullName',
     'actions'
@@ -184,5 +188,12 @@ export class ClientDetailsComponent implements OnInit, AfterViewInit {
       this.paginator.length = response.totalCount;
       this.dataSource.data = response.targets;
     })
+  }
+
+  onDowloadSampleTargetCsv() {
+    this._clientService.downloadSampleTargetCsvFile()
+      .subscribe(blob => {
+        saveAs(blob, 'sample-client-target.csv');
+      })
   }
 }

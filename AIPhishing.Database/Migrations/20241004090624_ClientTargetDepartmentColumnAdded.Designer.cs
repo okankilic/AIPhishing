@@ -3,6 +3,7 @@ using System;
 using AIPhishing.Database;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace AIPhishing.Database.Migrations
 {
     [DbContext(typeof(PhishingDbContext))]
-    partial class PhishingDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241004090624_ClientTargetDepartmentColumnAdded")]
+    partial class ClientTargetDepartmentColumnAdded
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

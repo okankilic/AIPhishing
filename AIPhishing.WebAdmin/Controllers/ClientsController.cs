@@ -6,13 +6,16 @@ namespace AIPhishing.WebAdmin.Controllers;
 
 public class ClientsController : BaseApiController
 {
+    private readonly IWebHostEnvironment _environment;
     private readonly IClientBusiness _clientBusiness;
 
     public ClientsController(
         IHttpContextAccessor httpContextAccessor,
+        IWebHostEnvironment environment,
         IClientBusiness clientBusiness)
         : base(httpContextAccessor)
     {
+        _environment = environment ?? throw new ArgumentNullException(nameof(environment));
         _clientBusiness = clientBusiness ?? throw new ArgumentNullException(nameof(clientBusiness));
     }
 
@@ -78,5 +81,13 @@ public class ClientsController : BaseApiController
         await _clientBusiness.DeleteTargetAsync(clientId, targetId, CurrentUser);
 
         return OkApiResult();
+    }
+
+    [HttpGet("sample-target-csv")]
+    public IActionResult GetSampleClientTargetCsv()
+    {
+        var csv = System.IO.File.OpenRead(Path.Combine(_environment.WebRootPath, "client-target.csv"));
+
+        return File(csv, "application/octet-stream", "sample-client-targets.csv");
     }
 }

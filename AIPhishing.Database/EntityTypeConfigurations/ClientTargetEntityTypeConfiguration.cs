@@ -27,6 +27,9 @@ public class ClientTargetEntityTypeConfiguration : IEntityTypeConfiguration<Clie
             .HasMaxLength(255)
             .IsRequired();
         
+        builder.Property(q => q.Department)
+            .HasMaxLength(255);
+        
         builder.Property(q => q.CreatedAt)
             .IsRequired();
         

@@ -105,6 +105,7 @@ public class ClientBusiness : IClientBusiness
                 {
                     Id = Guid.NewGuid(),
                     ClientId = client.Id,
+                    Department = t.Department,
                     Email = t.Email,
                     FullName = t.FullName,
                     CreatedAt = DateTime.UtcNow
@@ -180,6 +181,7 @@ public class ClientBusiness : IClientBusiness
             .Select(q => new
             {
                 q.Id,
+                q.Department,
                 q.Email,
                 q.FullName,
                 q.CreatedAt
@@ -190,7 +192,7 @@ public class ClientBusiness : IClientBusiness
             .ToArrayAsync();
 
         var response = (from target in targets
-                select new ClientTargetListViewModel(target.Id, target.Email, target.FullName))
+                select new ClientTargetListViewModel(target.Id, target.Department, target.Email, target.FullName))
             .ToArray();
 
         return new ClientTargetListResponse(response, count);
@@ -321,6 +323,7 @@ public class ClientBusiness : IClientBusiness
 
                 if (existingTarget != null)
                 {
+                    existingTarget.Department = target.Department;
                     existingTarget.FullName = target.FullName;
 
                     _dbContext.ClientTargets.Update(existingTarget);
@@ -331,6 +334,7 @@ public class ClientBusiness : IClientBusiness
                     {
                         Id = Guid.NewGuid(),
                         ClientId = client.Id,
+                        Department = target.Department,
                         Email = target.Email,
                         FullName = target.FullName,
                         CreatedAt = DateTime.UtcNow
