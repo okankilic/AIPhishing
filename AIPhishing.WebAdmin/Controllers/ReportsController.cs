@@ -17,9 +17,9 @@ public class ReportsController : BaseApiController
     }
     
     [HttpGet("header")]
-    public async Task<IActionResult> GetHeader()
+    public async Task<IActionResult> GetHeader([FromQuery] ReportHeaderRequest request)
     {
-        var response = await _reportBusiness.GetHeaderAsync(CurrentUser);
+        var response = await _reportBusiness.GetHeaderAsync(request, CurrentUser);
 
         return OkApiResult(response);
     }

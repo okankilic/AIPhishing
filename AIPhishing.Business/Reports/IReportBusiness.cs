@@ -5,6 +5,6 @@ namespace AIPhishing.Business.Reports;
 
 public interface IReportBusiness
 {
-    Task<ReportHeaderModel> GetHeaderAsync(UserContext currentUser);
+    Task<ReportHeaderModel> GetHeaderAsync(ReportHeaderRequest request, UserContext currentUser);
     Task<ReportItemListResponse> GetItemsAsync(ReportItemListRequest request, UserContext currentUser);
 }

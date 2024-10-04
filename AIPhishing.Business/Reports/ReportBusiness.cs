@@ -16,20 +16,28 @@ public class ReportBusiness : IReportBusiness
         _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
     }
 
-    public async Task<ReportHeaderModel> GetHeaderAsync(UserContext currentUser)
+    public async Task<ReportHeaderModel> GetHeaderAsync(ReportHeaderRequest request, UserContext currentUser)
     {
+        if (request == null)
+            throw BusinessException.Required(nameof(request));
+
+        if (request.StartDate != null && request.EndDate != null && request.StartDate > request.EndDate)
+            throw new BusinessException($"Start date cannot be later than End date");
+        
         if (!currentUser.IsGodUser)
         {
-            return await GetClientHeaderAsync(currentUser.ClientId!.Value);
+            return await GetClientHeaderAsync(currentUser.ClientId!.Value, request);
         }
 
-        return await GetGodUserHeaderAsync();
+        return await GetGodUserHeaderAsync(request);
     }
 
-    private async Task<ReportHeaderModel> GetGodUserHeaderAsync()
+    private async Task<ReportHeaderModel> GetGodUserHeaderAsync(ReportHeaderRequest request)
     {
         var attackEmails = _dbContext.AttackEmails
-            .AsNoTracking();
+            .AsNoTracking()
+            .Where(q => (request.StartDate == null || q.CreatedAt >= request.StartDate)
+                        && (request.EndDate == null || q.CreatedAt <= request.EndDate));
 
         var attackTargets = _dbContext.AttackTargets
             .AsNoTracking();
@@ -82,11 +90,13 @@ public class ReportBusiness : IReportBusiness
             best?.Department ?? string.Empty);
     }
 
-    private async Task<ReportHeaderModel> GetClientHeaderAsync(Guid clientId)
+    private async Task<ReportHeaderModel> GetClientHeaderAsync(Guid clientId, ReportHeaderRequest request)
     {
         var attackEmails = _dbContext.AttackEmails
             .AsNoTracking()
-            .Where(q => q.Attack.ClientId == clientId);
+            .Where(q => q.Attack.ClientId == clientId
+                        && (request.StartDate == null || q.CreatedAt >= request.StartDate)
+                        && (request.EndDate == null || q.CreatedAt <= request.EndDate));
 
         var attackTargets = _dbContext.AttackTargets
             .AsNoTracking()
@@ -147,11 +157,12 @@ public class ReportBusiness : IReportBusiness
         if (request == null)
             throw BusinessException.Required(nameof(request));
 
+        if (request.StartDate != null && request.EndDate != null && request.StartDate > request.EndDate)
+            throw new BusinessException($"Start date cannot be later than End date");
+
         if (!currentUser.IsGodUser)
         {
-            var clientId = currentUser.ClientId!.Value;
-
-            return await GetClientItemsAsync(clientId, request);
+            return await GetClientItemsAsync(currentUser.ClientId!.Value, request);
         }
 
         return await GetGodUserItemsAsync(request);
@@ -166,9 +177,11 @@ public class ReportBusiness : IReportBusiness
         var page = request.CurrentPage > 0
             ? request.CurrentPage
             : 1;
-        
+
         var attackEmails = _dbContext.AttackEmails
-            .AsNoTracking();
+            .AsNoTracking()
+            .Where(q => (request.StartDate == null || q.CreatedAt >= request.StartDate)
+                        && (request.EndDate == null || q.CreatedAt <= request.EndDate));
 
         var attackTargets = _dbContext.AttackTargets
             .AsNoTracking();
@@ -226,7 +239,10 @@ public class ReportBusiness : IReportBusiness
 
         var attackEmails = _dbContext.AttackEmails
             .AsNoTracking()
-            .Where(q => q.Attack.ClientId == clientId);
+            .Where(q => q.Attack.ClientId == clientId
+                && (request.StartDate == null || q.CreatedAt >= request.StartDate)
+                && (request.EndDate == null || q.CreatedAt <= request.EndDate)
+            );
 
         var attackTargets = _dbContext.AttackTargets
             .AsNoTracking()
