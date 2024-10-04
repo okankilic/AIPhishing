@@ -6,9 +6,9 @@ using AIPhishing.Business.Emails;
 using AIPhishing.Business.Enums;
 using AIPhishing.Business.Integrations;
 using AIPhishing.Business.Mocks;
+using AIPhishing.Business.Reports;
 using AIPhishing.Database;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -43,6 +43,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IAuthBusiness, AuthBusiness>();
         services.AddScoped<IEnumBusiness, EnumBusiness>();
         services.AddScoped<IClientBusiness, ClientBusiness>();
+        services.AddScoped<IReportBusiness, ReportBusiness>();
 
         var useMockServices = configuration.GetValue<bool>("UseMockServices");
 
