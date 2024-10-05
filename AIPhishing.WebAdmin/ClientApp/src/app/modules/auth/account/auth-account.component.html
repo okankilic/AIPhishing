@@ -1,0 +1,46 @@
+<div style="display: flex; flex-direction: column; align-items: stretch; justify-content: stretch;">
+  <h2>Update Password</h2>
+  <form
+    [formGroup]="form"
+    (ngSubmit)="onSubmit()"
+    style="display: flex; flex-direction: column; align-items: stretch; justify-content: stretch;">
+    <mat-form-field>
+      <mat-label>
+        Old Password
+      </mat-label>
+      <input
+        matInput
+        type="password"
+        formControlName="oldPassword"
+      >
+      <mat-error *ngIf="form.hasError('required', 'oldPassword')">
+        Please enter the old password
+      </mat-error>
+      <mat-error *ngIf="form.hasError('maxlength', 'oldPassword')">
+        Password cannot be longer than 100 chars
+      </mat-error>
+    </mat-form-field>
+    <mat-form-field>
+      <mat-label>
+        New Password
+      </mat-label>
+      <input
+        matInput
+        type="password"
+        formControlName="newPassword"
+      >
+      <mat-error *ngIf="form.hasError('required', 'newPassword')">
+        Please enter the new password
+      </mat-error>
+      <mat-error *ngIf="form.hasError('maxlength', 'newPassword')">
+        Password cannot be longer than 100 chars
+      </mat-error>
+    </mat-form-field>
+    <button
+      mat-raised-button
+      type="submit"
+      color="primary">
+      Update
+    </button>
+  </form>
+</div>

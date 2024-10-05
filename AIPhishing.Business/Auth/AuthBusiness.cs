@@ -1,10 +1,12 @@
 ﻿using System.Security.Claims;
 using AIPhishing.Business.Auth.Models;
 using AIPhishing.Business.Configurations;
+using AIPhishing.Business.Contexts;
 using AIPhishing.Common.Constants;
 using AIPhishing.Common.Exceptions;
 using AIPhishing.Common.Helpers;
 using AIPhishing.Database;
+using AIPhishing.Database.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 
@@ -66,5 +68,30 @@ public class AuthBusiness : IAuthBusiness
             _jwtConfiguration.ExpiresInMinutes,
             DateTime.UtcNow.AddMinutes(_jwtConfiguration.ExpiresInMinutes), 
             new AuthUserResponse(user.Email, user.ClientId));
+    }
+
+    public async Task UpdatePasswordAsync(AuthUpdatePasswordRequest request, UserContext currentUser)
+    {
+        if (request == null)
+            throw BusinessException.Required(nameof(request));
+
+        if (string.IsNullOrEmpty(request.OldPassword))
+            throw BusinessException.Required(nameof(request.OldPassword));
+        
+        if (string.IsNullOrEmpty(request.NewPassword))
+            throw BusinessException.Required(nameof(request.NewPassword));
+
+        var user = await _dbContext.Users
+                       .SingleOrDefaultAsync(q => q.Id == currentUser.Id)
+                   ?? throw BusinessException.NotFound(nameof(User), currentUser.Id);
+        
+        if (PasswordHelper.Verify(request.OldPassword, user.Password))
+            throw new BusinessException($"Your old password is invalid.");
+
+        user.Password = PasswordHelper.Hash(request.NewPassword);
+
+        _dbContext.Users.Update(user);
+
+        await _dbContext.SaveChangesAsync();
     }
 }

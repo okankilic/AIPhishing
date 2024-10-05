@@ -13,6 +13,9 @@ import {
 import {
   BaseApiService
 } from "../../../shared/services/base-api.service";
+import {
+  AuthUpdatePasswordRequest
+} from "../models/auth-update-password-request";
 
 @Injectable({
   providedIn: 'root'
@@ -27,5 +30,9 @@ export class AuthService extends BaseApiService {
 
   public login(request: AuthLoginRequest) {
     return this.doPost<AuthLoginResponse>(`${this._baseUrl}/login`, request);
+  }
+
+  public updatePassword(request: AuthUpdatePasswordRequest) {
+    return this.doPut(`${this._baseUrl}/update-password`, request);
   }
 }

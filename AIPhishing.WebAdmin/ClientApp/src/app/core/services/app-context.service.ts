@@ -71,7 +71,7 @@ export class AppContextService {
       tokenExpiry: null,
       user: null
     })
-    this.navigate('/login', {
+    this.navigate('/auth/login', {
       queryParams: {
         returnUrl: returnUrl ?? '/'
       }

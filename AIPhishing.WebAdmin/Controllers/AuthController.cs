@@ -27,4 +27,12 @@ public class AuthController : BaseApiController
 
         return OkApiResult(response);
     }
+
+    [HttpPut("update-password")]
+    public async Task<IActionResult> UpdatePassword([FromBody] AuthUpdatePasswordRequest request)
+    {
+        await _authBusiness.UpdatePasswordAsync(request, CurrentUser);
+
+        return OkApiResult();
+    }
 }

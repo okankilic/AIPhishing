@@ -1,8 +1,16 @@
-import { NgModule } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import {
+  NgModule
+} from '@angular/core';
+import {
+  CommonModule
+} from '@angular/common';
 
-import { AuthRoutingModule } from './auth-routing.module';
-import { AuthLoginComponent } from './login/auth-login.component';
+import {
+  AuthRoutingModule
+} from './auth-routing.module';
+import {
+  AuthLoginComponent
+} from './login/auth-login.component';
 import {
   MatInputModule
 } from "@angular/material/input";
@@ -13,11 +21,13 @@ import {
   FormsModule,
   ReactiveFormsModule
 } from "@angular/forms";
+import { AuthAccountComponent } from './account/auth-account.component';
 
 
 @NgModule({
   declarations: [
-    AuthLoginComponent
+    AuthLoginComponent,
+    AuthAccountComponent
   ],
   imports: [
     CommonModule,

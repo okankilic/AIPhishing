@@ -59,7 +59,7 @@ import {
         ]
       },
       {
-        path: 'login',
+        path: 'auth',
         loadChildren: () => import('./modules/auth/auth.module').then(m => m.AuthModule)
       },
       {
