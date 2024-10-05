@@ -31,4 +31,14 @@ public class ReportsController : BaseApiController
 
         return OkApiResult(response);
     }
+
+    [HttpGet("export")]
+    public async Task<IActionResult> Export([FromQuery] ReportExportRequest request)
+    {
+        var response = await _reportBusiness.ExportAsync(request, CurrentUser);
+
+        response.Position = 0;
+
+        return File(response, "application/octet-stream", $"Report{DateTime.UtcNow:yyyyMMddhhmmss}.xlsx");
+    }
 }

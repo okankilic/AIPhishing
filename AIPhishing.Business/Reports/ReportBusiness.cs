@@ -2,6 +2,7 @@ using AIPhishing.Business.Contexts;
 using AIPhishing.Business.Reports.Models;
 using AIPhishing.Common.Exceptions;
 using AIPhishing.Database;
+using ClosedXML.Excel;
 using Microsoft.EntityFrameworkCore;
 
 namespace AIPhishing.Business.Reports;
@@ -170,7 +171,41 @@ public class ReportBusiness : IReportBusiness
         return await GetGodUserItemsAsync(request);
     }
 
-    private async Task<ReportItemListResponse> GetGodUserItemsAsync(ReportItemListRequest request)
+    public async Task<Stream> ExportAsync(ReportExportRequest request, UserContext currentUser)
+    {
+        ReportItemListResponse itemListResponse;
+        
+        if (!currentUser.IsGodUser)
+        {
+            itemListResponse = await GetClientItemsAsync(
+                currentUser.ClientId!.Value, 
+                new ReportItemListRequest(request.StartDate, request.EndDate, 0, 0), 
+                true);
+        }
+        else
+        {
+            itemListResponse = await GetGodUserItemsAsync(
+                new ReportItemListRequest(request.StartDate, request.EndDate, 0, 0), 
+                true);
+        }
+
+        using var wb = new XLWorkbook();
+
+        var ws = wb.AddWorksheet();
+
+        ws.FirstCell().InsertTable(itemListResponse.Items, "ReportItems", true);
+
+        ws.Columns().AdjustToContents();
+        ws.Rows().AdjustToContents();
+
+        var ms = new MemoryStream();
+            
+        wb.SaveAs(ms);
+
+        return ms;
+    }
+
+    private async Task<ReportItemListResponse> GetGodUserItemsAsync(ReportItemListRequest request, bool isExport = false)
     {
         var pageSize = request.PageSize > 0
             ? request.PageSize
@@ -223,15 +258,19 @@ public class ReportBusiness : IReportBusiness
 
         var items = await phishings
             .OrderByDescending(q => q.CreatedAt)
-            .Skip(pageSize * (page - 1))
-            .Take(pageSize)
+            .Skip(isExport 
+                ? 0 
+                : pageSize * (page - 1))
+            .Take(isExport 
+                ? totalCount 
+                : pageSize)
             .Select(q => new ReportItemModel(q.Email, q.Department, q.ScenarioName, q.SendDate, q.Status))
             .ToArrayAsync();
 
         return new ReportItemListResponse(items, totalCount);
     }
 
-    private async Task<ReportItemListResponse> GetClientItemsAsync(Guid clientId, ReportItemListRequest request)
+    private async Task<ReportItemListResponse> GetClientItemsAsync(Guid clientId, ReportItemListRequest request, bool isExport = false)
     {
         var pageSize = request.PageSize > 0
             ? request.PageSize
@@ -287,8 +326,12 @@ public class ReportBusiness : IReportBusiness
 
         var items = await phishings
             .OrderByDescending(q => q.CreatedAt)
-            .Skip(pageSize * (page - 1))
-            .Take(pageSize)
+            .Skip(isExport 
+                ? 0 
+                : pageSize * (page - 1))
+            .Take(isExport 
+                ? totalCount 
+                : pageSize)
             .Select(q => new ReportItemModel(q.Email, q.Department, q.ScenarioName, q.SendDate, q.Status))
             .ToArrayAsync();
 
