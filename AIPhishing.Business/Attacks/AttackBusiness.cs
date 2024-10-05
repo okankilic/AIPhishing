@@ -407,7 +407,6 @@ public class AttackBusiness : IAttackBusiness
             throw BusinessException.Required(nameof(model));
         
         var email = await _dbContext.AttackEmails
-                        .AsNoTracking()
                         .SingleOrDefaultAsync(q => q.Id == model.EmailId)
                     ?? throw BusinessException.NotFound(nameof(AttackEmail), model.EmailId);
         
@@ -416,38 +415,55 @@ public class AttackBusiness : IAttackBusiness
                                                     && q.TargetEmail == email.To)
                      ?? throw new BusinessException($"{nameof(AttackTarget)} not found. AttackId: {email.AttackId}, TargetEmail: {email.To}");
 
-        target.Succeeded = true;
+        await using var ts = await _dbContext.Database.BeginTransactionAsync();
 
-        _dbContext.AttackTargets.Update(target);
-
-        var reply = new AttackEmailReply
+        try
         {
-            Id = Guid.NewGuid(),
-            AttackEmailId = email.Id,
-            Subject = email.Subject,
-            Body = model.Content,
-            CreatedAt = DateTime.UtcNow
-        };
+            email.IsReplied = true;
+            email.RepliedAt = DateTime.UtcNow;
 
-        await _dbContext.AttackEmailReplies.AddAsync(reply);
-
-        await _dbContext.SaveChangesAsync();
-        
-        _ = Task.Run(async () =>
-        {
-            using var scope = _serviceScopeFactory.CreateScope();
+            _dbContext.AttackEmails.Update(email);
             
-            var attackBusiness = scope.ServiceProvider.GetRequiredService<IAttackBusiness>();
+            target.Succeeded = true;
 
-            try
+            _dbContext.AttackTargets.Update(target);
+
+            var reply = new AttackEmailReply
             {
-                await attackBusiness.ReplyEmailAsync(reply.Id);
-            }
-            catch (Exception e)
+                Id = Guid.NewGuid(),
+                AttackEmailId = email.Id,
+                Subject = email.Subject,
+                Body = model.Content,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            await _dbContext.AttackEmailReplies.AddAsync(reply);
+
+            await _dbContext.SaveChangesAsync();
+
+            await ts.CommitAsync();
+        
+            _ = Task.Run(async () =>
             {
-                _logger.LogError(e, $"An error occured in ReplyEmailAsync");
-            }
-        });
+                using var scope = _serviceScopeFactory.CreateScope();
+            
+                var attackBusiness = scope.ServiceProvider.GetRequiredService<IAttackBusiness>();
+
+                try
+                {
+                    await attackBusiness.ReplyEmailAsync(reply.Id);
+                }
+                catch (Exception e)
+                {
+                    _logger.LogError(e, $"An error occured in ReplyEmailAsync");
+                }
+            });
+        }
+        catch (Exception)
+        {
+            await ts.RollbackAsync();
+            throw;
+        }
     }
 
     public async Task ReplyEmailAsync(Guid replyEmailId)

@@ -21,6 +21,8 @@ public class AttackEmail
     public int TryCount { get; set; }
     public string? ErrorMessage { get; set; } = null;
     public DateTime? SendAt { get; set; }
+    public bool IsReplied { get; set; }
+    public DateTime? RepliedAt { get; set; }
     
     //  navigations
     public virtual Attack Attack { get; set; }

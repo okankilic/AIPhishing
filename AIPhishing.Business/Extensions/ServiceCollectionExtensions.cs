@@ -2,6 +2,7 @@
 using AIPhishing.Business.Auth;
 using AIPhishing.Business.Clients;
 using AIPhishing.Business.Configurations;
+using AIPhishing.Business.Dashboards;
 using AIPhishing.Business.Emails;
 using AIPhishing.Business.Enums;
 using AIPhishing.Business.Integrations;
@@ -44,6 +45,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IEnumBusiness, EnumBusiness>();
         services.AddScoped<IClientBusiness, ClientBusiness>();
         services.AddScoped<IReportBusiness, ReportBusiness>();
+        services.AddScoped<IDashboardBusiness, DashboardBusiness>();
 
         var useMockServices = configuration.GetValue<bool>("UseMockServices");
 

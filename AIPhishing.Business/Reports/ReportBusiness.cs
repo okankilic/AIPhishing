@@ -52,10 +52,12 @@ public class ReportBusiness : IReportBusiness
             from g in gj.DefaultIfEmpty()
             select new
             {
-                Department = g != null ? g.Department : string.Empty,
+                Department = g != null 
+                    ? g.Department 
+                    : "N/A",
                 Email = attackTarget.TargetEmail,
                 FullName = attackTarget.TargetFullName,
-                Phished = attackEmail.IsClicked || attackEmail.IsOpened
+                Phished = attackEmail.IsReplied || attackEmail.IsClicked || attackEmail.IsOpened
             };
 
         var totalPhishings = await phishings.CountAsync();
@@ -117,7 +119,7 @@ public class ReportBusiness : IReportBusiness
                 clientTarget.Department,
                 clientTarget.Email,
                 clientTarget.FullName,
-                Phished = attackEmail.IsClicked || attackEmail.IsOpened
+                Phished = attackEmail.IsReplied || attackEmail.IsClicked || attackEmail.IsOpened
             };
 
         var totalPhishings = await phishings.CountAsync();
@@ -198,7 +200,7 @@ public class ReportBusiness : IReportBusiness
             {
                 Department = g != null 
                     ? g.Department 
-                    : null,
+                    : "N/A",
                 Email = attackTarget.TargetEmail,
                 FullName = attackTarget.TargetFullName,
                 ScenarioName = attackTarget.AttackType == null
@@ -207,11 +209,13 @@ public class ReportBusiness : IReportBusiness
                 SendDate = attackEmail.SentAt,
                 Status = attackEmail.SentAt == null
                     ? "Pending"
-                    : attackEmail.IsClicked
-                        ? "Clicked"
-                        : attackEmail.IsOpened
-                            ? "Viewed"
-                            : "Not Viewed",
+                    : attackEmail.IsReplied 
+                        ? "Replied" 
+                        : attackEmail.IsClicked
+                            ? "Clicked"
+                            : attackEmail.IsOpened
+                                ? "Viewed"
+                                : "Not Viewed",
                 attackEmail.CreatedAt
             };
         
@@ -269,11 +273,13 @@ public class ReportBusiness : IReportBusiness
                 SendDate = attackEmail.SentAt,
                 Status = attackEmail.SentAt == null
                     ? "Pending"
-                    : attackEmail.IsClicked
-                        ? "Clicked"
-                        : attackEmail.IsOpened
-                            ? "Viewed"
-                            : "Not Viewed",
+                    : attackEmail.IsReplied 
+                        ? "Replied" 
+                        : attackEmail.IsClicked
+                            ? "Clicked"
+                            : attackEmail.IsOpened
+                                ? "Viewed"
+                                : "Not Viewed",
                 attackEmail.CreatedAt
             };
 
