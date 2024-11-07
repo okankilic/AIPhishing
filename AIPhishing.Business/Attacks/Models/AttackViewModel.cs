@@ -7,7 +7,7 @@ public record AttackViewModel(
     string Language,
     AttackStateEnum State,
     DateTime? StartTime,
-    AttackTargetViewModel[] Targets)
+    ConversationViewModel[] Conversations)
 {
-    public double SuccessRate => Targets.Length == 0 ? 0 : (Targets.Count(t => t.Succeeded) / Targets.Length) * 100;
+    public double SuccessRate => Conversations.Length == 0 ? 0 : (Conversations.Count(t => t.IsOpened || t.IsClicked || t.IsReplied) / Conversations.Length) * 100;
 }

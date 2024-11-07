@@ -46,6 +46,9 @@ public class AttackBusiness : IAttackBusiness
 
     public async Task<Guid> CreateAsync(AttackCreateRequest request, UserContext currentUser)
     {
+        if (!currentUser.ClientId.HasValue)
+            throw new BusinessException($"God users cannot start an attack.");
+        
         if (string.IsNullOrEmpty(request.Language?.Trim()))
             throw BusinessException.Required(nameof(request.Language));
 
@@ -67,7 +70,7 @@ public class AttackBusiness : IAttackBusiness
         if (request.CsvFile == null || Path.GetExtension(request.CsvFile.FileName) != ".csv")
             throw BusinessException.Required(nameof(request.CsvFile));
 
-        AttackTargetCsvModel[] users;
+        ConversationCsvModel[] users;
 
         try
         {
@@ -78,7 +81,7 @@ public class AttackBusiness : IAttackBusiness
                 BadDataFound = null
             };
             using var csv = new CsvReader(reader, csvConfiguration);
-            users = csv.GetRecords<AttackTargetCsvModel>().ToArray();
+            users = csv.GetRecords<ConversationCsvModel>().ToArray();
         }
         catch (Exception ex)
         {
@@ -110,40 +113,51 @@ public class AttackBusiness : IAttackBusiness
 
             if (string.IsNullOrEmpty(request.BodyTemplate))
             {
-                var targetModels = (from user in users
+                var conversationModels = (from user in users
                         let random = new Random()
                         let index = random.Next(request.Types.Length)
-                        select new AttackTargetCreateModel(request.Types[index], user.Email, user.FullName))
+                        select new ConversationCreateModel(
+                            request.Types[index], 
+                            user.Email, 
+                            user.FullName,
+                            string.Empty,
+                            string.Empty))
                     .ToArray();
                 
-                await CreateTargetsAsync(currentUser.ClientId, attack.Id, targetModels);
+                await CreateConversationsAsync(currentUser.ClientId.Value, attack.Id, conversationModels);
             }
             else
             {
-                var targetModels = users
-                    .Select(u => new AttackTargetCreateModel(null, u.Email, u.FullName))
+                var conversationModels = users
+                    .Select(u => new ConversationCreateModel(
+                        null, 
+                        u.Email, 
+                        u.FullName,
+                        request.From,
+                        request.Subject))
                     .ToArray();
                 
-                await CreateTargetsAsync(currentUser.ClientId, attack.Id, targetModels);
+                var conversations = await CreateConversationsAsync(currentUser.ClientId.Value, attack.Id, conversationModels);
                 
                 var appUrl = _configuration.GetValue<string>("ApiBaseUrl")!;
 
                 var emailModels = (
-                    from user in users
+                    from conversation in conversations
                     let emailId = Guid.NewGuid()
                     let clickUrl = $"{appUrl}/api/webhooks/clicked/{emailId}"
                     let body = request.BodyTemplate.BindObjectProperties(new
                     {
-                        user.FullName,
-                        user.Email,
+                        conversation.FullName,
+                        conversation.Email,
                         ClickUrl = clickUrl
                     })
                     select new AttackEmailCreateModel(
+                        conversation.Id,
                         emailId,
-                        user.Email,
-                        request.From,
-                        request.DisplayName,
-                        request.Subject,
+                        conversation.Email,
+                        conversation.Sender,
+                        conversation.Sender,
+                        conversation.Subject,
                         body,
                         attack.StartTime)
                 ).ToArray();
@@ -199,61 +213,91 @@ public class AttackBusiness : IAttackBusiness
                          .SingleOrDefaultAsync(q => q.Id == id)
                      ?? throw new BusinessException($"{nameof(Attack)} not found. Id: {id}");
 
-        var targets = await _dbContext.AttackTargets
+        var conversations = await _dbContext.Conversations
             .Select(q => new
             {
+                q.Id,
+                q.ClientTargetId,
                 q.AttackId,
                 q.AttackType,
-                q.TargetEmail,
-                q.TargetFullName,
-                q.Succeeded
+                q.ClientTarget.Email,
+                q.ClientTarget.FullName,
+                q.Sender,
+                q.Subject,
+                q.IsOpened,
+                q.IsClicked,
+                q.IsReplied
             })
             .Where(q => q.AttackId == attack.Id)
             .ToArrayAsync();
             
-        var targetViewModels = targets
-            .Select(target => new AttackTargetViewModel(
-                target.AttackType,
-                target.TargetEmail, 
-                target.TargetFullName, 
-                target.Succeeded))
+        var targetViewModels = conversations
+            .Select(c => new ConversationViewModel(
+                c.Id,
+                c.ClientTargetId,
+                c.AttackType,
+                c.Sender,
+                c.Subject,
+                c.Email, 
+                c.FullName, 
+                c.IsOpened,
+                c.IsClicked,
+                c.IsReplied))
             .ToArray();
 
         return new AttackViewModel(attack.Id, attack.Language, attack.State, attack.StartTime, targetViewModels);
     }
     
-    public async Task CreateTargetsAsync(Guid? clientId, Guid id, AttackTargetCreateModel[] models)
+    private async Task<ConversationViewModel[]> CreateConversationsAsync(Guid clientId, Guid attackId, ConversationCreateModel[] models)
     {
-        var targets = models
-            .Select(u => new AttackTarget
+        var clientTargetEmails = await _dbContext.ClientTargets
+            .AsNoTracking()
+            .Where(q => q.ClientId == clientId)
+            .Select(q => new
             {
-                AttackId = id,
-                AttackType = u.AttackType,
-                TargetEmail = u.Email,
-                TargetFullName = u.FullName
+                q.Id,
+                q.Email,
+                q.FullName
             })
+            .ToArrayAsync();
+        
+        var conversationViewModels = models
+            .Join(clientTargetEmails, 
+                model => model.Email, 
+                clientTarget => clientTarget.Email,
+                (model, clientTarget) => new ConversationViewModel(
+                    Guid.NewGuid(),
+                    clientTarget.Id,
+                    model.AttackType,
+                    model.Sender,
+                    model.Subject,
+                    clientTarget.Email,
+                    clientTarget.FullName,
+                    false,
+                    false,
+                    false))
             .ToArray();
 
-        if (clientId != null)
-        {
-            var clientTargetEmails = await _dbContext.ClientTargets
-                .AsNoTracking()
-                .Where(q => q.ClientId == clientId)
-                .Select(q => q.Email)
-                .ToArrayAsync();
-
-            var filteredTargets = targets
-                .Where(q => clientTargetEmails.Contains(q.TargetEmail))
-                .ToArray();
+        var conversations = conversationViewModels
+            .Select(q => new Conversation
+            {
+                Id = q.Id,
+                ClientTargetId = q.ClientTargetId,
+                AttackId = attackId,
+                AttackType = q.AttackType,
+                Sender = q.Sender,
+                Subject = q.Subject,
+                IsOpened = q.IsOpened,
+                IsClicked = q.IsClicked,
+                IsReplied = q.IsReplied
+            })
+            .ToArray();
             
-            await _dbContext.AttackTargets.AddRangeAsync(filteredTargets);
-        }
-        else
-        {
-            await _dbContext.AttackTargets.AddRangeAsync(targets);
-        }
+        await _dbContext.Conversations.AddRangeAsync(conversations);
 
         await _dbContext.SaveChangesAsync();
+
+        return conversationViewModels;
     }
 
     public async Task CreateEmailsAsync(Guid id, AttackEmailCreateModel[] models)
@@ -262,7 +306,7 @@ public class AttackBusiness : IAttackBusiness
             .Select(q => new AttackEmail
             {
                 Id = q.Id,
-                AttackId = id,
+                ConversationId = q.ConversationId,
                 State = EmailStateEnum.Created,
                 From = q.From,
                 DisplayName = q.DisplayName,
@@ -270,6 +314,7 @@ public class AttackBusiness : IAttackBusiness
                 Subject = q.Subject,
                 Body = q.Body,
                 SendAt = q.SendAt,
+                TryCount = 0,
                 CreatedAt = DateTime.UtcNow
             })
             .ToArray();
@@ -295,14 +340,13 @@ public class AttackBusiness : IAttackBusiness
 
             _dbContext.AttackEmails.Update(email);
 
-            var target = await _dbContext.AttackTargets
-                             .SingleOrDefaultAsync(q => q.AttackId == email.AttackId
-                                                        && q.TargetEmail == email.To)
-                         ?? throw new BusinessException($"{nameof(AttackTarget)} not found. AttackId: {email.AttackId}, TargetEmail: {email.To}");
+            var conversation = await _dbContext.Conversations
+                             .SingleOrDefaultAsync(q => q.Id == email.ConversationId)
+                         ?? throw BusinessException.NotFound(nameof(Conversation), email.ConversationId);
 
-            target.Succeeded = true;
+            conversation.IsOpened = true;
 
-            _dbContext.AttackTargets.Update(target);
+            _dbContext.Conversations.Update(conversation);
 
             await _dbContext.SaveChangesAsync();
 
@@ -332,14 +376,13 @@ public class AttackBusiness : IAttackBusiness
 
             _dbContext.AttackEmails.Update(email);
 
-            var target = await _dbContext.AttackTargets
-                .SingleOrDefaultAsync(q => q.AttackId == email.AttackId
-                                           && q.TargetEmail == email.To)
-                ?? throw new BusinessException($"{nameof(AttackTarget)} not found. AttackId: {email.AttackId}, TargetEmail: {email.To}");
+            var conversation = await _dbContext.Conversations
+                             .SingleOrDefaultAsync(q => q.Id == email.ConversationId)
+                         ?? throw BusinessException.NotFound(nameof(Conversation), email.ConversationId);
 
-            target.Succeeded = true;
+            conversation.IsClicked = true;
 
-            _dbContext.AttackTargets.Update(target);
+            _dbContext.Conversations.Update(conversation);
 
             await _dbContext.SaveChangesAsync();
 
@@ -382,19 +425,19 @@ public class AttackBusiness : IAttackBusiness
             .Take(pageSize)
             .ToArrayAsync();
 
-        var targets = await _dbContext.AttackTargets
+        var conversations = await _dbContext.Conversations
             .AsNoTracking()
             .GroupBy(q => q.AttackId)
             .Select(q => new
             {
                 AttackId = q.Key,
-                SuccessCount = q.Count(i => i.Succeeded),
+                SuccessCount = q.Count(i => i.IsOpened || i.IsClicked || i.IsReplied),
                 TargetCount = q.Count()
             })
             .ToArrayAsync();
 
         var response = (from attack in attacks
-                join target in targets on attack.Id equals target.AttackId
+                join target in conversations on attack.Id equals target.AttackId
                 select new AttackListViewModel(attack.Id, attack.Language, attack.State, target.SuccessCount, target.TargetCount, attack.CreatedAt))
             .ToArray();
 
@@ -410,10 +453,9 @@ public class AttackBusiness : IAttackBusiness
                         .SingleOrDefaultAsync(q => q.Id == model.EmailId)
                     ?? throw BusinessException.NotFound(nameof(AttackEmail), model.EmailId);
         
-        var target = await _dbContext.AttackTargets
-                         .SingleOrDefaultAsync(q => q.AttackId == email.AttackId
-                                                    && q.TargetEmail == email.To)
-                     ?? throw new BusinessException($"{nameof(AttackTarget)} not found. AttackId: {email.AttackId}, TargetEmail: {email.To}");
+        var conversation = await _dbContext.Conversations
+                         .SingleOrDefaultAsync(q => q.Id == email.ConversationId)
+                     ?? throw BusinessException.NotFound(nameof(Conversation), email.ConversationId);
 
         await using var ts = await _dbContext.Database.BeginTransactionAsync();
 
@@ -424,13 +466,14 @@ public class AttackBusiness : IAttackBusiness
 
             _dbContext.AttackEmails.Update(email);
             
-            target.Succeeded = true;
+            conversation.IsReplied = true;
 
-            _dbContext.AttackTargets.Update(target);
+            _dbContext.Conversations.Update(conversation);
 
             var reply = new AttackEmailReply
             {
                 Id = Guid.NewGuid(),
+                ConversationId = conversation.Id,
                 AttackEmailId = email.Id,
                 Subject = email.Subject,
                 Body = model.Content,
@@ -478,41 +521,50 @@ public class AttackBusiness : IAttackBusiness
                         .SingleOrDefaultAsync(q => q.Id == reply.AttackEmailId)
                     ?? throw BusinessException.NotFound(nameof(AttackEmail), reply.AttackEmailId);
 
-        var target = await _dbContext.AttackTargets
-                         .AsNoTracking()
-                         .SingleOrDefaultAsync(q => q.AttackId == email.AttackId
-                                                    && q.TargetEmail == email.To)
-                     ?? throw BusinessException.NotFound(nameof(AttackTarget), email.To);
+        var conversation = await _dbContext.Conversations
+                         .Select(c => new
+                         {
+                             c.Id,
+                             c.ClientTargetId,
+                             c.AttackId,
+                             c.ClientTarget.Email,
+                             c.ClientTarget.FullName
+                         })
+                         .SingleOrDefaultAsync(q => q.Id == email.ConversationId)
+                     ?? throw BusinessException.NotFound(nameof(Conversation), email.ConversationId);
 
         var attack = await _dbContext.Attacks
                          .AsNoTracking()
-                         .SingleOrDefaultAsync(q => q.Id == target.AttackId)
-                     ?? throw BusinessException.NotFound(nameof(Attack), target.AttackId);
+                         .SingleOrDefaultAsync(q => q.Id == conversation.AttackId)
+                     ?? throw BusinessException.NotFound(nameof(Attack), conversation.AttackId);
         
         var appUrl = _configuration.GetValue<string>("ApiBaseUrl")!;
         var newEmailId = Guid.NewGuid();
         var linkUrl = $"{appUrl}/api/webhooks/clicked/{newEmailId}";
         
         var response = await _phishingAiApiClient.GetReplyEmailContentAsync(attack.Language, new PhishingAiGetReplyEmailContentRequest(
-            target.TargetFullName,
-            target.TargetEmail,
+            conversation.FullName,
+            conversation.Email,
             newEmailId,
             linkUrl,
             reply.Subject,
-            reply.Body));
+            reply.Body,
+            conversation.Id));
 
         var newEmail = new AttackEmail
         {
             Id = newEmailId,
-            AttackId = email.AttackId,
+            ConversationId = email.ConversationId,
             State = EmailStateEnum.Created,
             From = email.From,
             DisplayName = email.DisplayName,
-            To = target.TargetEmail,
+            To = conversation.Email,
             Subject = reply.Subject,
             Body = response,
             CreatedAt = DateTime.UtcNow,
-            SendAt = DateTime.UtcNow.AddMinutes(new Random().Next(_replyMinDuration, _replyMaxDuration))
+            SendAt = DateTime.UtcNow.AddMinutes(new Random().Next(_replyMinDuration, _replyMaxDuration)),
+            AttackEmailReplyId = reply.Id,
+            TryCount = 0
         };
 
         await _dbContext.AttackEmails.AddAsync(newEmail);

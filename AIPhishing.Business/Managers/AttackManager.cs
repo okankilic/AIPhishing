@@ -14,7 +14,6 @@ public class AttackManager
 {
     private enum Triggers
     {
-        // FetchCrmUsers,
         FetchEmailContents,
         CreateEmails,
         Complete
@@ -23,7 +22,6 @@ public class AttackManager
     private enum States
     {
         Initial,
-        // Target,
         EmailContentFetch,
         EmailCreate,
         Completed
@@ -46,26 +44,8 @@ public class AttackManager
         _stateMachine.Configure(States.Initial)
             .OnEntryAsync(async () =>
             {
-                // var attack = await attackBusiness.GetAsync(attackId);
-                //
-                // if (attack.Targets == null || attack.Targets.Length == 0)
-                // {
-                //     var crmApiClient = serviceProvider.GetRequiredService<ICrmApiClient>();
-                //
-                //     var response = await crmApiClient.GetUsersAsync(new CrmGetUsersRequest());
-                //
-                //     var targets = response.Users
-                //         .Select(q => new AttackTargetCreateModel(q.Email, q.FullName))
-                //         .ToArray();
-                //
-                //     await attackBusiness.CreateTargetsAsync(attackId, targets);
-                //
-                //     await attackBusiness.UpdateStateAsync(attackId, AttackStateEnum.CrmUsersFetched);   
-                // }
-
                 await _stateMachine.FireAsync(Triggers.FetchEmailContents);
             })
-            // .Permit(Triggers.FetchCrmUsers, States.Target)
             .Permit(Triggers.FetchEmailContents, States.EmailContentFetch);
         
         _stateMachine.Configure(States.EmailContentFetch)
@@ -81,7 +61,6 @@ public class AttackManager
 
                 try
                 {
-                
                     _emailModels.Clear();
                 
                     await attackBusiness.UpdateStateAsync(attackId, AttackStateEnum.FetchingMailContent);
@@ -90,26 +69,28 @@ public class AttackManager
                 
                     var appUrl = configuration.GetValue<string>("ApiBaseUrl")!;
                     
-                    foreach (var attackTarget in attack.Targets)
+                    foreach (var conversation in attack.Conversations)
                     {
-                        if (string.IsNullOrEmpty(attackTarget.AttackType))
+                        if (string.IsNullOrEmpty(conversation.AttackType))
                             continue;
                  
                         var emailId = Guid.NewGuid();
                         var linkUrl = $"{appUrl}/api/webhooks/clicked/{emailId}";
 
                         var request = new PhishingAiGetEmailContentRequest(
-                            attackTarget.AttackType, 
-                            attackTarget.FullName,
-                            attackTarget.Email, 
+                            conversation.AttackType, 
+                            conversation.FullName,
+                            conversation.Email, 
                             emailId, 
-                            linkUrl);
+                            linkUrl,
+                            conversation.Id);
                     
                         var response = await phishingAiApiClient.CreateEmailContentAsync(attack.Language, request);
                     
                         _emailModels.Add(new AttackEmailCreateModel(
+                            conversation.Id,
                             emailId, 
-                            attackTarget.Email, 
+                            conversation.Email, 
                             response.Sender, 
                             response.Sender, 
                             response.Subject, 

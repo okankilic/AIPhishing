@@ -13,6 +13,9 @@ public class AttackEmailReplyEntityTypeConfiguration : IEntityTypeConfiguration<
         builder.Property(q => q.Id)
             .IsRequired()
             .ValueGeneratedNever();
+        
+        builder.Property(q => q.ConversationId)
+            .IsRequired();
 
         builder.Property(q => q.AttackEmailId)
             .IsRequired();
@@ -26,6 +29,10 @@ public class AttackEmailReplyEntityTypeConfiguration : IEntityTypeConfiguration<
 
         builder.Property(q => q.CreatedAt)
             .IsRequired();
+        
+        builder.HasOne(q => q.Conversation)
+            .WithMany(q => q.AttackEmailReplies)
+            .HasForeignKey(q => q.ConversationId);
 
         builder.HasOne(q => q.AttackEmail)
             .WithMany(q => q.Replies)

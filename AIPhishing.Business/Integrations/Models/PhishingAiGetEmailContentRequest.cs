@@ -7,4 +7,5 @@ public record PhishingAiGetEmailContentRequest(
     [property: JsonPropertyName("targetFullName")] string TargetFullName, 
     [property: JsonPropertyName("targetEmail")] string TargetEmail, 
     [property: JsonPropertyName("emailId")] Guid EmailId, 
-    [property: JsonPropertyName("linkUrl")] string LinkUrl);
+    [property: JsonPropertyName("linkUrl")] string LinkUrl,
+    [property: JsonPropertyName("conversationId")] Guid ConversationId);

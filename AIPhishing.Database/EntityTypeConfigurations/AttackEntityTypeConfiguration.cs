@@ -28,12 +28,8 @@ public class AttackEntityTypeConfiguration : IEntityTypeConfiguration<Attack>
         builder.HasOne(q => q.Client)
             .WithMany(q => q.Attacks)
             .HasForeignKey(q => q.ClientId);
-
-        builder.HasMany(q => q.Targets)
-            .WithOne(q => q.Attack)
-            .HasForeignKey(q => q.AttackId);
         
-        builder.HasMany(q => q.Emails)
+        builder.HasMany(q => q.Conversations)
             .WithOne(q => q.Attack)
             .HasForeignKey(q => q.AttackId);
     }

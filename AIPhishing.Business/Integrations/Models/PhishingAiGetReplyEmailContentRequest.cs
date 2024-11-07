@@ -8,4 +8,5 @@ public record PhishingAiGetReplyEmailContentRequest(
     [property: JsonPropertyName("emailId")] Guid EmailId,
     [property: JsonPropertyName("linkUrl")] string LinkUrl,
     [property: JsonPropertyName("subject")] string Subject, 
-    [property: JsonPropertyName("body")] string Body);
+    [property: JsonPropertyName("body")] string Body,
+    [property: JsonPropertyName("conversationId")] Guid ConversationId);

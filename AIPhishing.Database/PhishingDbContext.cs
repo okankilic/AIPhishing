@@ -41,10 +41,11 @@ public class PhishingDbContext : DbContext
     }
 
     public DbSet<Attack> Attacks { get; set; }
-    public DbSet<AttackTarget> AttackTargets { get; set; }
+    // public DbSet<AttackTarget> AttackTargets { get; set; }
     public DbSet<AttackEmail> AttackEmails { get; set; }
     public DbSet<AttackEmailReply> AttackEmailReplies { get; set; }
     public DbSet<Client> Clients { get; set; }
     public DbSet<User> Users { get; set; }
     public DbSet<ClientTarget> ClientTargets { get; set; }
+    public DbSet<Conversation> Conversations { get; set; }
 }

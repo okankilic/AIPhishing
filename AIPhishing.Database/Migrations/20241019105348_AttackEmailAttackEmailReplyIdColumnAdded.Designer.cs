@@ -3,6 +3,7 @@ using System;
 using AIPhishing.Database;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace AIPhishing.Database.Migrations
 {
     [DbContext(typeof(PhishingDbContext))]
-    partial class PhishingDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241019105348_AttackEmailAttackEmailReplyIdColumnAdded")]
+    partial class AttackEmailAttackEmailReplyIdColumnAdded
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -83,6 +86,10 @@ namespace AIPhishing.Database.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("attack_email_reply_id");
 
+                    b.Property<Guid>("AttackId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("attack_id");
+
                     b.Property<string>("Body")
                         .IsRequired()
                         .HasColumnType("text")
@@ -91,10 +98,6 @@ namespace AIPhishing.Database.Migrations
                     b.Property<DateTime?>("ClickedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("clicked_at");
-
-                    b.Property<Guid>("ConversationId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("conversation_id");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
@@ -168,11 +171,8 @@ namespace AIPhishing.Database.Migrations
                     b.HasKey("Id")
                         .HasName("pk_attack_emails");
 
-                    b.HasIndex("AttackEmailReplyId")
-                        .HasDatabaseName("ix_attack_emails_attack_email_reply_id");
-
-                    b.HasIndex("ConversationId")
-                        .HasDatabaseName("ix_attack_emails_conversation_id");
+                    b.HasIndex("AttackId")
+                        .HasDatabaseName("ix_attack_emails_attack_id");
 
                     b.ToTable("attack_emails", "ai_phishing");
                 });
@@ -192,10 +192,6 @@ namespace AIPhishing.Database.Migrations
                         .HasColumnType("text")
                         .HasColumnName("body");
 
-                    b.Property<Guid>("ConversationId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("conversation_id");
-
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
@@ -212,10 +208,39 @@ namespace AIPhishing.Database.Migrations
                     b.HasIndex("AttackEmailId")
                         .HasDatabaseName("ix_attack_email_replies_attack_email_id");
 
-                    b.HasIndex("ConversationId")
-                        .HasDatabaseName("ix_attack_email_replies_conversation_id");
-
                     b.ToTable("attack_email_replies", "ai_phishing");
+                });
+
+            modelBuilder.Entity("AIPhishing.Database.Entities.AttackTarget", b =>
+                {
+                    b.Property<Guid>("AttackId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("attack_id");
+
+                    b.Property<string>("TargetEmail")
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("target_email");
+
+                    b.Property<string>("AttackType")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("attack_type");
+
+                    b.Property<bool>("Succeeded")
+                        .HasColumnType("boolean")
+                        .HasColumnName("succeeded");
+
+                    b.Property<string>("TargetFullName")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("target_full_name");
+
+                    b.HasKey("AttackId", "TargetEmail")
+                        .HasName("pk_attack_targets");
+
+                    b.ToTable("attack_targets", "ai_phishing");
                 });
 
             modelBuilder.Entity("AIPhishing.Database.Entities.Client", b =>
@@ -259,6 +284,7 @@ namespace AIPhishing.Database.Migrations
                         .HasColumnName("created_at");
 
                     b.Property<string>("Department")
+                        .IsRequired()
                         .HasMaxLength(255)
                         .HasColumnType("character varying(255)")
                         .HasColumnName("department");
@@ -283,62 +309,6 @@ namespace AIPhishing.Database.Migrations
                         .HasDatabaseName("ix_client_targets_client_id_email");
 
                     b.ToTable("client_targets", "ai_phishing");
-                });
-
-            modelBuilder.Entity("AIPhishing.Database.Entities.Conversation", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .HasColumnType("uuid")
-                        .HasColumnName("id");
-
-                    b.Property<Guid>("AttackId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("attack_id");
-
-                    b.Property<string>("AttackType")
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)")
-                        .HasColumnName("attack_type");
-
-                    b.Property<Guid>("ClientTargetId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("client_target_id");
-
-                    b.Property<bool>("IsClicked")
-                        .HasColumnType("boolean")
-                        .HasColumnName("is_clicked");
-
-                    b.Property<bool>("IsOpened")
-                        .HasColumnType("boolean")
-                        .HasColumnName("is_opened");
-
-                    b.Property<bool>("IsReplied")
-                        .HasColumnType("boolean")
-                        .HasColumnName("is_replied");
-
-                    b.Property<string>("Sender")
-                        .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("character varying(255)")
-                        .HasColumnName("sender");
-
-                    b.Property<string>("Subject")
-                        .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("character varying(255)")
-                        .HasColumnName("subject");
-
-                    b.HasKey("Id")
-                        .HasName("pk_conversations");
-
-                    b.HasIndex("AttackId")
-                        .HasDatabaseName("ix_conversations_attack_id");
-
-                    b.HasIndex("ClientTargetId", "AttackId")
-                        .IsUnique()
-                        .HasDatabaseName("ix_conversations_client_target_id_attack_id");
-
-                    b.ToTable("conversations", "ai_phishing");
                 });
 
             modelBuilder.Entity("AIPhishing.Database.Entities.User", b =>
@@ -392,21 +362,14 @@ namespace AIPhishing.Database.Migrations
 
             modelBuilder.Entity("AIPhishing.Database.Entities.AttackEmail", b =>
                 {
-                    b.HasOne("AIPhishing.Database.Entities.AttackEmailReply", "AttackEmailReply")
-                        .WithMany()
-                        .HasForeignKey("AttackEmailReplyId")
-                        .HasConstraintName("fk_attack_emails_attack_email_replies_attack_email_reply_id");
-
-                    b.HasOne("AIPhishing.Database.Entities.Conversation", "Conversation")
-                        .WithMany("AttackEmails")
-                        .HasForeignKey("ConversationId")
+                    b.HasOne("AIPhishing.Database.Entities.Attack", "Attack")
+                        .WithMany("Emails")
+                        .HasForeignKey("AttackId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
-                        .HasConstraintName("fk_attack_emails_conversations_conversation_id");
+                        .HasConstraintName("fk_attack_emails_attacks_attack_id");
 
-                    b.Navigation("AttackEmailReply");
-
-                    b.Navigation("Conversation");
+                    b.Navigation("Attack");
                 });
 
             modelBuilder.Entity("AIPhishing.Database.Entities.AttackEmailReply", b =>
@@ -418,16 +381,19 @@ namespace AIPhishing.Database.Migrations
                         .IsRequired()
                         .HasConstraintName("fk_attack_email_replies_attack_emails_attack_email_id");
 
-                    b.HasOne("AIPhishing.Database.Entities.Conversation", "Conversation")
-                        .WithMany("AttackEmailReplies")
-                        .HasForeignKey("ConversationId")
+                    b.Navigation("AttackEmail");
+                });
+
+            modelBuilder.Entity("AIPhishing.Database.Entities.AttackTarget", b =>
+                {
+                    b.HasOne("AIPhishing.Database.Entities.Attack", "Attack")
+                        .WithMany("Targets")
+                        .HasForeignKey("AttackId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
-                        .HasConstraintName("fk_attack_email_replies_conversations_conversation_id");
+                        .HasConstraintName("fk_attack_targets_attacks_attack_id");
 
-                    b.Navigation("AttackEmail");
-
-                    b.Navigation("Conversation");
+                    b.Navigation("Attack");
                 });
 
             modelBuilder.Entity("AIPhishing.Database.Entities.ClientTarget", b =>
@@ -442,27 +408,6 @@ namespace AIPhishing.Database.Migrations
                     b.Navigation("Client");
                 });
 
-            modelBuilder.Entity("AIPhishing.Database.Entities.Conversation", b =>
-                {
-                    b.HasOne("AIPhishing.Database.Entities.Attack", "Attack")
-                        .WithMany("Conversations")
-                        .HasForeignKey("AttackId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("fk_conversations_attacks_attack_id");
-
-                    b.HasOne("AIPhishing.Database.Entities.ClientTarget", "ClientTarget")
-                        .WithMany("Conversations")
-                        .HasForeignKey("ClientTargetId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("fk_conversations_client_targets_client_target_id");
-
-                    b.Navigation("Attack");
-
-                    b.Navigation("ClientTarget");
-                });
-
             modelBuilder.Entity("AIPhishing.Database.Entities.User", b =>
                 {
                     b.HasOne("AIPhishing.Database.Entities.Client", "Client")
@@ -475,7 +420,9 @@ namespace AIPhishing.Database.Migrations
 
             modelBuilder.Entity("AIPhishing.Database.Entities.Attack", b =>
                 {
-                    b.Navigation("Conversations");
+                    b.Navigation("Emails");
+
+                    b.Navigation("Targets");
                 });
 
             modelBuilder.Entity("AIPhishing.Database.Entities.AttackEmail", b =>
@@ -490,18 +437,6 @@ namespace AIPhishing.Database.Migrations
                     b.Navigation("Targets");
 
                     b.Navigation("Users");
-                });
-
-            modelBuilder.Entity("AIPhishing.Database.Entities.ClientTarget", b =>
-                {
-                    b.Navigation("Conversations");
-                });
-
-            modelBuilder.Entity("AIPhishing.Database.Entities.Conversation", b =>
-                {
-                    b.Navigation("AttackEmailReplies");
-
-                    b.Navigation("AttackEmails");
                 });
 #pragma warning restore 612, 618
         }

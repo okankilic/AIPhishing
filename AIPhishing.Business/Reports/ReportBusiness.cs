@@ -37,28 +37,29 @@ public class ReportBusiness : IReportBusiness
     {
         var attackEmails = _dbContext.AttackEmails
             .AsNoTracking()
-            .Where(q => (request.StartDate == null || q.CreatedAt >= request.StartDate)
+            .Where(q => q.AttackEmailReplyId == null 
+                        && (request.StartDate == null || q.CreatedAt >= request.StartDate)
                         && (request.EndDate == null || q.CreatedAt <= request.EndDate));
 
-        var attackTargets = _dbContext.AttackTargets
+        var conversations = _dbContext.Conversations
             .AsNoTracking();
 
         var clientTargets = _dbContext.ClientTargets
             .AsNoTracking();
 
         var phishings = from attackEmail in attackEmails
-            join attackTarget in attackTargets
-                on new { attackEmail.AttackId, Email = attackEmail.To } equals new { attackTarget.AttackId, Email = attackTarget.TargetEmail }
-            join clientTarget in clientTargets on attackTarget.TargetEmail equals clientTarget.Email into gj
-            from g in gj.DefaultIfEmpty()
+            join conversation in conversations 
+                on attackEmail.ConversationId equals conversation.Id
+            join clientTarget in clientTargets 
+                on conversation.ClientTargetId equals clientTarget.Id
             select new
             {
-                Department = g != null 
-                    ? g.Department 
+                Department = clientTarget.Department != null 
+                    ? clientTarget.Department 
                     : "N/A",
-                Email = attackTarget.TargetEmail,
-                FullName = attackTarget.TargetFullName,
-                Phished = attackEmail.IsReplied || attackEmail.IsClicked || attackEmail.IsOpened
+                clientTarget.Email,
+                clientTarget.FullName,
+                Phished = conversation.IsReplied || conversation.IsClicked || conversation.IsOpened
             };
 
         var totalPhishings = await phishings.CountAsync();
@@ -97,11 +98,12 @@ public class ReportBusiness : IReportBusiness
     {
         var attackEmails = _dbContext.AttackEmails
             .AsNoTracking()
-            .Where(q => q.Attack.ClientId == clientId
+            .Where(q => q.Conversation.Attack.ClientId == clientId
+                        && q.AttackEmailReplyId == null
                         && (request.StartDate == null || q.CreatedAt >= request.StartDate)
                         && (request.EndDate == null || q.CreatedAt <= request.EndDate));
 
-        var attackTargets = _dbContext.AttackTargets
+        var conversations = _dbContext.Conversations
             .AsNoTracking()
             .Where(q => q.Attack.ClientId == clientId);
 
@@ -110,17 +112,19 @@ public class ReportBusiness : IReportBusiness
             .Where(q => q.ClientId == clientId);
 
         var phishings = from attackEmail in attackEmails
-            join attackTarget in attackTargets
-                on new { attackEmail.AttackId, Email = attackEmail.To } equals new { attackTarget.AttackId, Email = attackTarget.TargetEmail }
+            join conversation in conversations
+                on attackEmail.ConversationId equals conversation.Id
             join clientTarget in clientTargets
-                on attackTarget.TargetEmail equals clientTarget.Email
+                on conversation.ClientTargetId equals clientTarget.Id
             select new
             {
-                ClientTargetId = clientTarget.Id,
-                clientTarget.Department,
+                conversation.ClientTargetId,
+                Department = clientTarget.Department != null 
+                    ? clientTarget.Department 
+                    : "N/A",
                 clientTarget.Email,
                 clientTarget.FullName,
-                Phished = attackEmail.IsReplied || attackEmail.IsClicked || attackEmail.IsOpened
+                Phished = conversation.IsReplied || conversation.IsClicked || conversation.IsOpened
             };
 
         var totalPhishings = await phishings.CountAsync();
@@ -217,38 +221,39 @@ public class ReportBusiness : IReportBusiness
 
         var attackEmails = _dbContext.AttackEmails
             .AsNoTracking()
-            .Where(q => (request.StartDate == null || q.CreatedAt >= request.StartDate)
+            .Where(q => q.AttackEmailReplyId == null 
+                        && (request.StartDate == null || q.CreatedAt >= request.StartDate)
                         && (request.EndDate == null || q.CreatedAt <= request.EndDate));
 
-        var attackTargets = _dbContext.AttackTargets
+        var conversations = _dbContext.Conversations
             .AsNoTracking();
 
         var clientTargets = _dbContext.ClientTargets
             .AsNoTracking();
 
         var phishings = from attackEmail in attackEmails
-            join attackTarget in attackTargets
-                on new { attackEmail.AttackId, Email = attackEmail.To } equals new { attackTarget.AttackId, Email = attackTarget.TargetEmail }
-            join clientTarget in clientTargets on attackTarget.TargetEmail equals clientTarget.Email into gj
-            from g in gj.DefaultIfEmpty()
+            join conversation in conversations
+                on attackEmail.ConversationId equals conversation.Id
+            join clientTarget in clientTargets 
+                on conversation.ClientTargetId equals clientTarget.Id
             select new
             {
-                Department = g != null 
-                    ? g.Department 
+                Department = clientTarget.Department != null 
+                    ? clientTarget.Department 
                     : "N/A",
-                Email = attackTarget.TargetEmail,
-                FullName = attackTarget.TargetFullName,
-                ScenarioName = attackTarget.AttackType == null
+                Email = clientTarget.Email,
+                FullName = clientTarget.FullName,
+                ScenarioName = conversation.AttackType == null
                     ? "Custom"
-                    : attackTarget.AttackType,
+                    : conversation.AttackType,
                 SendDate = attackEmail.SentAt,
                 Status = attackEmail.SentAt == null
                     ? "Pending"
-                    : attackEmail.IsReplied 
+                    : conversation.IsReplied 
                         ? "Replied" 
-                        : attackEmail.IsClicked
+                        : conversation.IsClicked
                             ? "Clicked"
-                            : attackEmail.IsOpened
+                            : conversation.IsOpened
                                 ? "Viewed"
                                 : "Not Viewed",
                 attackEmail.CreatedAt
@@ -282,12 +287,13 @@ public class ReportBusiness : IReportBusiness
 
         var attackEmails = _dbContext.AttackEmails
             .AsNoTracking()
-            .Where(q => q.Attack.ClientId == clientId
-                && (request.StartDate == null || q.CreatedAt >= request.StartDate)
-                && (request.EndDate == null || q.CreatedAt <= request.EndDate)
+            .Where(q => q.Conversation.Attack.ClientId == clientId
+                        && q.AttackEmailReplyId == null
+                        && (request.StartDate == null || q.CreatedAt >= request.StartDate)
+                        && (request.EndDate == null || q.CreatedAt <= request.EndDate)
             );
 
-        var attackTargets = _dbContext.AttackTargets
+        var conversations = _dbContext.Conversations
             .AsNoTracking()
             .Where(q => q.Attack.ClientId == clientId);
 
@@ -296,27 +302,27 @@ public class ReportBusiness : IReportBusiness
             .Where(q => q.ClientId == clientId);
 
         var phishings = from attackEmail in attackEmails
-            join attackTarget in attackTargets
-                on new { attackEmail.AttackId, Email = attackEmail.To } equals new { attackTarget.AttackId, Email = attackTarget.TargetEmail }
+            join conversation in conversations
+                on attackEmail.ConversationId equals conversation.Id
             join clientTarget in clientTargets
-                on attackTarget.TargetEmail equals clientTarget.Email
+                on conversation.ClientTargetId equals clientTarget.Id
             select new
             {
                 ClientTargetId = clientTarget.Id,
                 clientTarget.Department,
-                Email = attackTarget.TargetEmail,
-                FullName = attackTarget.TargetFullName,
-                ScenarioName = attackTarget.AttackType == null
+                Email = clientTarget.Email,
+                FullName = clientTarget.FullName,
+                ScenarioName = conversation.AttackType == null
                     ? "Custom"
-                    : attackTarget.AttackType,
+                    : conversation.AttackType,
                 SendDate = attackEmail.SentAt,
                 Status = attackEmail.SentAt == null
                     ? "Pending"
-                    : attackEmail.IsReplied 
+                    : conversation.IsReplied 
                         ? "Replied" 
-                        : attackEmail.IsClicked
+                        : conversation.IsClicked
                             ? "Clicked"
-                            : attackEmail.IsOpened
+                            : conversation.IsOpened
                                 ? "Viewed"
                                 : "Not Viewed",
                 attackEmail.CreatedAt

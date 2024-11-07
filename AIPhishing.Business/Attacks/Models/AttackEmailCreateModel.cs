@@ -1,6 +1,7 @@
 ﻿namespace AIPhishing.Business.Attacks.Models;
 
 public record AttackEmailCreateModel(
+    Guid ConversationId,
     Guid Id, 
     string To, 
     string From, 

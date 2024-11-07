@@ -191,8 +191,12 @@ public class MockPhishingAiApiClient : IPhishingAiApiClient
         return new PhishingAiGetEmailContentResponse("tester@insangercektenhayretediyor.com",subject, html);
     }
 
-    public Task<string> GetReplyEmailContentAsync(string language, PhishingAiGetReplyEmailContentRequest request)
+    public async Task<string> GetReplyEmailContentAsync(string language, PhishingAiGetReplyEmailContentRequest request)
     {
-        return Task.FromResult<string>(string.Empty);
+        await Task.Delay(3000);
+        
+        var html = $"<html><body>Hello {request.TargetFullName}</body></html>";
+
+        return html;
     }
 }

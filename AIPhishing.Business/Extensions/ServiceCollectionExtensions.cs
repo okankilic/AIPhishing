@@ -51,7 +51,6 @@ public static class ServiceCollectionExtensions
 
         if (useMockServices)
         {
-            services.AddScoped<ICrmApiClient, MockCrmApiClient>();
             services.AddScoped<IPhishingAiApiClient, MockPhishingAiApiClient>();   
         }
         else

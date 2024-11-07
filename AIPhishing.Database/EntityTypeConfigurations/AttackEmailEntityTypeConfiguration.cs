@@ -13,8 +13,8 @@ public class AttackEmailEntityTypeConfiguration : IEntityTypeConfiguration<Attac
         builder.Property(q => q.Id)
             .IsRequired()
             .ValueGeneratedNever();
-
-        builder.Property(q => q.AttackId)
+        
+        builder.Property(q => q.ConversationId)
             .IsRequired();
 
         builder.Property(q => q.State)
@@ -46,8 +46,12 @@ public class AttackEmailEntityTypeConfiguration : IEntityTypeConfiguration<Attac
         builder.Property(q => q.TryCount)
             .IsRequired();
 
-        builder.HasOne(q => q.Attack)
-            .WithMany(q => q.Emails)
-            .HasForeignKey(q => q.AttackId);
+        builder.HasOne(q => q.Conversation)
+            .WithMany(q => q.AttackEmails)
+            .HasForeignKey(q => q.ConversationId);
+        
+        builder.HasOne(q => q.AttackEmailReply)
+            .WithMany()
+            .HasForeignKey(q => q.AttackEmailReplyId);
     }
 }

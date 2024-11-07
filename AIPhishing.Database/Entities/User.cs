@@ -1,13 +1,13 @@
 ﻿namespace AIPhishing.Database.Entities;
 
-public class User
+public sealed class User
 {
-    public Guid Id { get; set; }
+    public required Guid Id { get; set; }
     public Guid? ClientId { get; set; }
-    public string Email { get; set; } = string.Empty;
-    public string Password { get; set; } = string.Empty;
-    public DateTime CreatedAt { get; set; }
+    public required string Email { get; set; } = string.Empty;
+    public required string Password { get; set; } = string.Empty;
+    public required DateTime CreatedAt { get; set; }
     
     //  navigations
-    public virtual Client Client { get; set; }
+    public Client Client { get; set; }
 }

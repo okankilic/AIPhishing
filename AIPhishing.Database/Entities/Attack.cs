@@ -2,20 +2,19 @@
 
 namespace AIPhishing.Database.Entities;
 
-public class Attack
+public sealed class Attack
 {
-    public Guid Id { get; set; }
-    public string Language { get; set; } = string.Empty;
-    public AttackStateEnum State { get; set; }
-    public string? Template { get; set; } = null;
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-    public DateTime? UpdatedAt { get; set; }
-    public string? ErrorMessage { get; set; } = null;
-    public DateTime? StartTime { get; set; }
+    public required Guid Id { get; set; }
     public Guid? ClientId { get; set; }
+    public required string Language { get; set; }
+    public required AttackStateEnum State { get; set; }
+    public string? Template { get; set; }
+    public required DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime? UpdatedAt { get; set; }
+    public string? ErrorMessage { get; set; }
+    public DateTime? StartTime { get; set; }
     
     //  Navigations
-    public virtual ICollection<AttackTarget> Targets { get; set; }
-    public virtual ICollection<AttackEmail> Emails { get; set; }
-    public virtual Client Client { get; set; }
+    public ICollection<Conversation> Conversations { get; set; }
+    public Client Client { get; set; }
 }
