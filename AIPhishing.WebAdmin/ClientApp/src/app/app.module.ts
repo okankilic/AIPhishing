@@ -2,6 +2,7 @@ import {
   BrowserModule
 } from '@angular/platform-browser';
 import {
+  APP_INITIALIZER,
   ErrorHandler,
   NgModule
 } from '@angular/core';
@@ -40,6 +41,9 @@ import {
 import {
   MatSnackBarModule
 } from "@angular/material/snack-bar";
+import {
+  AppConfigurationService
+} from "./shared/services/app-configuration.service";
 
 @NgModule({
   declarations: [
@@ -74,6 +78,12 @@ import {
   ],
   providers: [
     {
+      provide: APP_INITIALIZER,
+      multi: true,
+      deps: [AppConfigurationService],
+      useFactory: (appConfigService: AppConfigurationService) => () => appConfigService.load()
+    },
+    {
       provide: ErrorHandler,
       useClass: GlobalErrorHandler
     },
@@ -85,4 +95,5 @@ import {
   ],
   bootstrap: [AppComponent]
 })
-export class AppModule { }
+export class AppModule {
+}

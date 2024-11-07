@@ -9,12 +9,17 @@ import {
   map
 } from "rxjs";
 import {
-  environment
-} from "../../../environments/environment";
+  AppConfigurationService
+} from "./app-configuration.service";
+import {
+  inject
+} from "@angular/core";
 
 export abstract class BaseApiService {
 
   abstract readonly _baseUrl: string;
+
+  protected readonly _appConfigService = inject(AppConfigurationService);
 
   constructor(
     protected readonly httpClient: HttpClient) {
@@ -76,6 +81,6 @@ export abstract class BaseApiService {
   }
 
   protected changeUrl(url: string) {
-    return environment.baseUrl + '/' + url;
+    return this._appConfigService.appConfig.baseUrl + '/' + url;
   }
 }
