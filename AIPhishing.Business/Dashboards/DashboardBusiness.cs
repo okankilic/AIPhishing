@@ -47,13 +47,13 @@ public class DashboardBusiness : IDashboardBusiness
 
         var totalEmailsSent = await sentEmails.LongCountAsync();
 
-        var phishedCount = await sentEmails.LongCountAsync(q => q.IsReplied || q.IsClicked);
+        var phishedCount = await sentEmails.LongCountAsync(q => q.IsClicked);
 
         var phishedRate = totalEmailsSent == 0
             ? 0
             : Math.Round((double)phishedCount / (double)totalEmailsSent * 100, 1);
             
-        var engagementCount = await sentEmails.LongCountAsync(q => q.IsReplied || q.IsClicked || q.IsOpened);
+        var engagementCount = await sentEmails.LongCountAsync(q => q.IsReplied);
             
         var engagementRate = totalEmailsSent == 0
             ? 0
@@ -141,13 +141,13 @@ public class DashboardBusiness : IDashboardBusiness
 
         var totalEmailsSent = await sentEmails.LongCountAsync();
 
-        var phishedCount = await sentEmails.LongCountAsync(q => q.IsReplied || q.IsClicked);
+        var phishedCount = await sentEmails.LongCountAsync(q => q.IsClicked);
 
         var phishedRate = totalEmailsSent == 0
             ? 0
             : Math.Round((double)phishedCount / (double)totalEmailsSent * 100, 1);
             
-        var engagementCount = await sentEmails.LongCountAsync(q => q.IsReplied || q.IsClicked || q.IsOpened);
+        var engagementCount = await sentEmails.LongCountAsync(q => q.IsReplied);
             
         var engagementRate = totalEmailsSent == 0
             ? 0

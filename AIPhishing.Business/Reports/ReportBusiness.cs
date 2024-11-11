@@ -59,7 +59,7 @@ public class ReportBusiness : IReportBusiness
                     : "N/A",
                 clientTarget.Email,
                 clientTarget.FullName,
-                Phished = conversation.IsReplied || conversation.IsClicked || conversation.IsOpened
+                Phished = conversation.IsClicked
             };
 
         var totalPhishings = await phishings.CountAsync();
@@ -124,7 +124,7 @@ public class ReportBusiness : IReportBusiness
                     : "N/A",
                 clientTarget.Email,
                 clientTarget.FullName,
-                Phished = conversation.IsReplied || conversation.IsClicked || conversation.IsOpened
+                Phished = conversation.IsClicked
             };
 
         var totalPhishings = await phishings.CountAsync();
