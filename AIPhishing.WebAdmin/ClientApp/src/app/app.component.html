@@ -1,6 +1,7 @@
 <body>
-  <app-nav-menu></app-nav-menu>
+  <app-nav-menu *ngIf="!appContextService?.showImage"></app-nav-menu>
   <main class="container">
     <router-outlet></router-outlet>
   </main>
+  <img *ngIf="appContextService?.showImage" src="assets/Baited.png" alt="Baited" style="width: 100%;">
 </body>

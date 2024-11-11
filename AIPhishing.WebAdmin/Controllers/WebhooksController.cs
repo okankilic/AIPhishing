@@ -8,7 +8,7 @@ namespace AIPhishing.WebAdmin.Controllers;
 [AllowAnonymous]
 [Route("api/[controller]")]
 [ApiController]
-public class WebhooksController(IAttackBusiness attackBusiness, IWebHostEnvironment environment)
+public class WebhooksController(IAttackBusiness attackBusiness)
     : ControllerBase
 {
     // [HttpPost("opened")]
@@ -31,14 +31,12 @@ public class WebhooksController(IAttackBusiness attackBusiness, IWebHostEnvironm
     //     return Ok();
     // }
     
-    [HttpGet("clicked/{emailId:guid}")]
-    public async Task<IActionResult> Clicked([FromRoute] Guid emailId)
+    [HttpPost("clicked")]
+    public async Task<IActionResult> Clicked([FromBody] AttackEmailClickedModel model)
     {
-        await attackBusiness.EmailClickedAsync(emailId);
+        await attackBusiness.EmailClickedAsync(model.EmailId);
 
-        var image = System.IO.File.OpenRead(Path.Combine(environment.WebRootPath, "Baited.png"));
-
-        return File(image, "image/png");
+        return Ok();
     }
 
     [HttpPost("replied")]

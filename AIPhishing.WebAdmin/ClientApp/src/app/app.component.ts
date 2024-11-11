@@ -1,4 +1,9 @@
-import { Component } from '@angular/core';
+import {
+  Component
+} from '@angular/core';
+import {
+  AppContextService
+} from "./core/services/app-context.service";
 
 @Component({
   selector: 'app-root',
@@ -6,4 +11,8 @@ import { Component } from '@angular/core';
 })
 export class AppComponent {
   title = 'app';
+  constructor(
+    public readonly appContextService: AppContextService
+  ) {
+  }
 }

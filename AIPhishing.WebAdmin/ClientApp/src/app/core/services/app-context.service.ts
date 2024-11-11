@@ -36,6 +36,16 @@ export class AppContextService {
     user: this._loginResponse?.user ?? null
   });
 
+  private _showImage = false;
+
+  get showImage() {
+    return this._showImage;
+  }
+
+  set showImage(value: boolean) {
+    this._showImage = value;
+  }
+
   get state() {
     return this._state;
   }

@@ -67,6 +67,10 @@ import {
         loadChildren: () => import('./modules/auth/auth.module').then(m => m.AuthModule)
       },
       {
+        path: 'actions',
+        loadChildren: () => import('./modules/actions/actions.module').then(m => m.ActionsModule)
+      },
+      {
         path: '',
         pathMatch: 'full',
         redirectTo: 'clients'
