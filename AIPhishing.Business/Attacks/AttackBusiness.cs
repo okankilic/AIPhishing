@@ -362,9 +362,14 @@ public class AttackBusiness : IAttackBusiness
 
     public async Task EmailClickedAsync(Guid emailId)
     {
-        var email = await _dbContext.AttackEmails.SingleOrDefaultAsync(q => q.Id == emailId && !q.IsClicked);
+        var email = await _dbContext.AttackEmails.SingleOrDefaultAsync(q => q.Id == emailId
+                                                                            && q.SentAt != null
+                                                                            && !q.IsClicked);
         
         if (email == null)
+            return;
+        
+        if (DateTime.UtcNow - email.SentAt!.Value < TimeSpan.FromMinutes(2))
             return;
 
         await using var ts = await _dbContext.Database.BeginTransactionAsync();

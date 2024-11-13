@@ -39,6 +39,9 @@ import {
 import {
   saveAs
 } from "file-saver";
+import {
+  finalize
+} from "rxjs";
 
 @Component({
   selector: 'app-client-details',
@@ -49,6 +52,8 @@ export class ClientDetailsComponent implements OnInit, AfterViewInit {
 
   private _clientId: string = '';
   private _client: ClientViewModel | null = null;
+
+  public totalCount = 0;
 
   clientForm = new FormGroup({
     'clientName': new FormControl<string | null>('', [
@@ -149,11 +154,15 @@ export class ClientDetailsComponent implements OnInit, AfterViewInit {
     const formData = new FormData();
     formData.append('file', this.csvForm.value.csvFile ?? '');
     this._clientService.importTargets(this._clientId, formData)
-      .subscribe(_ => {
-        this.csvForm.patchValue({
-          csvFile: null,
-          csvFileName: null
+      .pipe(
+        finalize(() => {
+          this.csvForm.patchValue({
+            csvFile: null,
+            csvFileName: null
+          })
         })
+      )
+      .subscribe(_ => {
         this._snackbarService.show('success', 'Targets imported.');
         this.getTargets();
       })
@@ -185,7 +194,7 @@ export class ClientDetailsComponent implements OnInit, AfterViewInit {
       pageSize: this.paginator.pageSize,
       currentPage: this.paginator.pageIndex + 1
     }).subscribe(response => {
-      this.paginator.length = response.totalCount;
+      this.totalCount = response.totalCount;
       this.dataSource.data = response.targets;
     })
   }

@@ -186,7 +186,7 @@ public class ClientBusiness : IClientBusiness
                 q.FullName,
                 q.CreatedAt
             })
-            .OrderByDescending(q => q.CreatedAt)
+            .OrderBy(q => q.Email)
             .Skip(pageSize * (page - 1))
             .Take(pageSize)
             .ToArrayAsync();
@@ -308,6 +308,20 @@ public class ClientBusiness : IClientBusiness
         
         if (targets.Length == 0)
             throw BusinessException.Invalid(nameof(file));
+
+        var duplicatedTargets = targets
+            .GroupBy(t => t.Email)
+            .Select(t => new
+            {
+                Email = t.Key,
+                Count = t.Count()
+            })
+            .Where(t => t.Count > 1)
+            .OrderBy(t => t.Email)
+            .ToArray();
+
+        if (duplicatedTargets.Length > 0)
+            throw new BusinessException($"Email(s): {string.Join(", ", duplicatedTargets.Select(t => t.Email))} defined more than one in the CSV file.");
 
         using var ts = await _dbContext.Database.BeginTransactionAsync();
 

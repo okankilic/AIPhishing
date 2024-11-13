@@ -1,6 +1,7 @@
 import {
   AfterViewInit,
-  Component
+  Component,
+  OnDestroy
 } from '@angular/core';
 import {
   ActivatedRoute
@@ -17,9 +18,10 @@ import {
   templateUrl: './clicked.component.html',
   styleUrls: ['./clicked.component.css']
 })
-export class ClickedComponent implements AfterViewInit {
+export class ClickedComponent implements AfterViewInit, OnDestroy {
 
   private _emailId!: string;
+  private _timeoutId = -1;
 
   constructor(
     activatedRoute: ActivatedRoute,
@@ -31,11 +33,21 @@ export class ClickedComponent implements AfterViewInit {
   }
 
   ngAfterViewInit() {
-    setTimeout(() => {
+    this.setClickTimeout();
+  }
+
+  private setClickTimeout() {
+    this._timeoutId = window?.setTimeout(() => {
       this._webhookService.clicked(this._emailId)
         .subscribe(_ => {
 
         });
     }, 2000)
+  }
+
+  ngOnDestroy() {
+    if (this._timeoutId > -1) {
+      window?.clearTimeout(this._timeoutId);
+    }
   }
 }
