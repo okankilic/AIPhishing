@@ -103,7 +103,6 @@ export class ClientDetailsComponent implements OnInit, AfterViewInit {
   }
 
   ngAfterViewInit() {
-    this.dataSource.paginator = this.paginator;
     this.paginator.page
       .subscribe(_ => {
         this.getTargets();
