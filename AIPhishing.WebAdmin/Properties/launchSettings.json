@@ -1,0 +1,30 @@
+﻿{
+  "profiles": {
+    "AIPhishing.WebAdmin": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "applicationUrl": "https://localhost:7247;http://localhost:5140",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "ASPNETCORE_HOSTINGSTARTUPASSEMBLIES": "Microsoft.AspNetCore.SpaProxy",
+        "ApiKey": "u_Slt3n1K-4L2TmF5a6n7Q",
+        "ApiBaseUrl": "https://8370-81-213-251-145.ngrok-free.app",
+        "UseMockServices": true,
+        "AdminConfiguration__Id": "673e1331-7ff4-4a8f-b841-de7ea22b8dc5",
+        "AdminConfiguration__UserName": "ilkem@baittechnology.co",
+        "AdminConfiguration__Password": "Sazan2499",
+        "EmailConfiguration__From": "ilkem@baittechnology.co",
+        "EmailConfiguration__Username": "ilkem@baittechnology.co",
+        "EmailConfiguration__Password": "Sazan2499",
+        "EmailConfiguration__Host": "baittechnology.co",
+        "EmailConfiguration__Port": 587,
+        "PhishingAiConfiguration__ApiBaseUrl": "http://10.0.28.10:8000",
+        "PhishingAiConfiguration__ApiKey": "u_Slt3n1K-4L2TmF5a6n7Q",
+        "ConnectionStrings__DbConnection": "UserID=postgres;Password=postgres;Host=localhost;Port=5432;Database=postgres;Pooling=true;MinPoolSize=0;MaxPoolSize=100;ConnectionLifetime=0;",
+        "JwtConfiguration__Secret": "SecretPhishing!!SecretPhishing!!",
+        "JwtConfiguration__Issuer": "BaitTechnology",
+        "JwtConfiguration__Audience": "BaitTechnologyAudience"
+      }
+    }
+  }
+}
